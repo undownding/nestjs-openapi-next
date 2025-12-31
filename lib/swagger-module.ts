@@ -8,6 +8,7 @@ import {
   SwaggerCustomOptions,
   SwaggerDocumentOptions
 } from './interfaces';
+import { TagObject } from './interfaces/open-api-spec.interface';
 import { MetadataLoader } from './plugin/metadata-loader';
 import { SwaggerScanner } from './swagger-scanner';
 import {
@@ -28,6 +29,43 @@ import { validatePath } from './utils/validate-path.util';
 export class SwaggerModule {
   private static readonly metadataLoader = new MetadataLoader();
 
+  private static mergeTags(
+    configTags?: TagObject[],
+    scannedTags?: TagObject[]
+  ): TagObject[] | undefined {
+    const byName = new Map<string, TagObject>();
+
+    for (const tag of configTags || []) {
+      if (!tag?.name) {
+        continue;
+      }
+      byName.set(tag.name, { ...tag });
+    }
+
+    for (const tag of scannedTags || []) {
+      if (!tag?.name) {
+        continue;
+      }
+      const existing = byName.get(tag.name) || { name: tag.name };
+      const merged: TagObject = { name: tag.name };
+
+      // Prefer explicit config values for standard fields, but allow scanned
+      // decorators to fill gaps.
+      merged.summary = existing.summary ?? tag.summary;
+      merged.description = existing.description ?? tag.description;
+      merged.externalDocs = existing.externalDocs ?? tag.externalDocs;
+
+      // Enhanced tag fields: merge in scanned values unless already present.
+      merged.parent = existing.parent ?? tag.parent;
+      merged.kind = existing.kind ?? tag.kind;
+
+      byName.set(tag.name, merged);
+    }
+
+    const merged = [...byName.values()];
+    return merged.length > 0 ? merged : undefined;
+  }
+
   public static createDocument(
     app: INestApplication,
     config: Omit<OpenAPIObject, 'paths'>,
@@ -42,12 +80,16 @@ export class SwaggerModule {
       document.components
     );
 
-    return {
+    const mergedTags = SwaggerModule.mergeTags(config.tags, document.tags);
+
+    const mergedDocument: OpenAPIObject = {
       openapi: '3.0.0',
       paths: {},
       ...config,
-      ...document
+      ...document,
+      ...(mergedTags ? { tags: mergedTags } : {})
     };
+    return mergedDocument;
   }
 
   public static async loadPluginMetadata(

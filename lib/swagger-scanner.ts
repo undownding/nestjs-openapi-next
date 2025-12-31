@@ -4,6 +4,7 @@ import { ApplicationConfig, NestContainer } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { Module } from '@nestjs/core/injector/module';
 import { flatten, isEmpty } from 'lodash';
+import { DECORATORS } from './constants';
 import {
   OpenAPIObject,
   OperationIdFactory,
@@ -21,6 +22,8 @@ import { SwaggerExplorer } from './swagger-explorer';
 import { SwaggerTransformer } from './swagger-transformer';
 import { getGlobalPrefix } from './utils/get-global-prefix';
 import { stripLastSlash } from './utils/strip-last-slash.util';
+import { ApiTagGroupOptions } from './decorators/api-tag-group.decorator';
+import { TagObject } from './interfaces/open-api-spec.interface';
 
 export class SwaggerScanner {
   private readonly transformer = new SwaggerTransformer();
@@ -58,6 +61,7 @@ export class SwaggerScanner {
       ? stripLastSlash(getGlobalPrefix(app))
       : '';
 
+    const tagGroups = this.exploreTagGroups(modules);
     const denormalizedPaths = modules.map(
       ({ controllers, metatype, imports }) => {
         let result: ModuleRoute[] = [];
@@ -103,6 +107,7 @@ export class SwaggerScanner {
 
     return {
       ...this.transformer.normalizePaths(flatten(denormalizedPaths)),
+      ...(tagGroups.length > 0 ? { tags: tagGroups } : {}),
       components: {
         schemas: schemas as Record<string, SchemaObject | ReferenceObject>
       }
@@ -170,5 +175,40 @@ export class SwaggerScanner {
     this.explorer = new SwaggerExplorer(this.schemaObjectFactory, {
       httpAdapterType
     });
+  }
+
+  private exploreTagGroups(modules: Module[]): TagObject[] {
+    const byName = new Map<string, TagObject>();
+
+    for (const moduleRef of modules) {
+      for (const wrapper of moduleRef.controllers.values()) {
+        const metatype = wrapper.metatype as Type<any> | undefined;
+        if (!metatype) {
+          continue;
+        }
+        const groups: ApiTagGroupOptions[] =
+          Reflect.getMetadata(DECORATORS.API_TAG_GROUP, metatype) || [];
+        for (const group of groups) {
+          if (!group?.name) {
+            continue;
+          }
+          const previous = byName.get(group.name) || { name: group.name };
+          byName.set(group.name, {
+            ...previous,
+            ...(group.summary !== undefined ? { summary: group.summary } : {}),
+            ...(group.description !== undefined
+              ? { description: group.description }
+              : {}),
+            ...(group.externalDocs !== undefined
+              ? { externalDocs: group.externalDocs }
+              : {}),
+            ...(group.parent !== undefined ? { parent: group.parent } : {}),
+            ...(group.kind !== undefined ? { kind: group.kind } : {})
+          });
+        }
+      }
+    }
+
+    return [...byName.values()];
   }
 }

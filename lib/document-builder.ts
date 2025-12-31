@@ -90,12 +90,14 @@ export class DocumentBuilder {
   public addTag(
     name: string,
     description = '',
-    externalDocs?: ExternalDocumentationObject
+    externalDocs?: ExternalDocumentationObject,
+    summary?: string
   ): this {
     this.document.tags = this.document.tags.concat(
       pickBy(
         {
           name,
+          summary,
           description,
           externalDocs
         },

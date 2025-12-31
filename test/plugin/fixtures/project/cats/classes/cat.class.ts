@@ -27,7 +27,7 @@ export class Cat {
   enumArr: LettersEnum;
 
   uppercaseString: Uppercase<string>;
-  
+
   lowercaseString: Lowercase<string>;
 
   capitalizeString: Capitalize<string>;

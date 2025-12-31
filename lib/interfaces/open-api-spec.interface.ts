@@ -64,6 +64,15 @@ export interface PathItemObject {
   summary?: string;
   description?: string;
   get?: OperationObject;
+  /**
+   * Non-standard method supported by some tooling.
+   * Kept for backward-compat with existing behavior.
+   */
+  search?: OperationObject;
+  /**
+   * OAS 3.2 HTTP QUERY method support.
+   */
+  query?: OperationObject;
   put?: OperationObject;
   post?: OperationObject;
   delete?: OperationObject;
@@ -133,6 +142,10 @@ export interface RequestBodyObject {
 export type ContentObject = Record<string, MediaTypeObject>;
 export interface MediaTypeObject {
   schema?: SchemaObject | ReferenceObject;
+  /**
+   * OAS 3.2 streaming schema for individual items.
+   */
+  itemSchema?: SchemaObject | ReferenceObject;
   examples?: ExamplesObject;
   example?: any;
   encoding?: EncodingObject;
@@ -147,8 +160,10 @@ export interface EncodingPropertyObject {
   allowReserved?: boolean;
 }
 
-export interface ResponsesObject
-  extends Record<string, ResponseObject | ReferenceObject | undefined> {
+export interface ResponsesObject extends Record<
+  string,
+  ResponseObject | ReferenceObject | undefined
+> {
   default?: ResponseObject | ReferenceObject;
 }
 
@@ -175,17 +190,29 @@ export interface LinkObject {
   operationRef?: string;
   operationId?: string;
   parameters?: LinkParametersObject;
-  requestBody?: any | string;
+  requestBody?: unknown;
   description?: string;
   server?: ServerObject;
 }
 
-export type LinkParametersObject = Record<string, any>;
+export type LinkParametersObject = Record<string, unknown>;
 export type HeaderObject = BaseParameterObject;
 export interface TagObject {
   name: string;
+  /**
+   * OAS 3.2 adds a short display summary for tags.
+   */
+  summary?: string;
   description?: string;
   externalDocs?: ExternalDocumentationObject;
+  /**
+   * OAS 3.2 Enhanced Tags (nested tags).
+   */
+  parent?: string;
+  /**
+   * OAS 3.2 Enhanced Tags (tag kind).
+   */
+  kind?: 'audience' | 'badge' | 'nav' | (string & {});
 }
 
 export type ExamplesObject = Record<string, ExampleObject | ReferenceObject>;
@@ -212,7 +239,9 @@ export interface SchemaObject {
   items?: SchemaObject | ReferenceObject;
   properties?: Record<string, SchemaObject | ReferenceObject>;
   additionalProperties?: SchemaObject | ReferenceObject | boolean;
-  patternProperties?: SchemaObject | ReferenceObject | any;
+  patternProperties?:
+    | Record<string, SchemaObject | ReferenceObject>
+    | undefined;
   description?: string;
   format?: string;
   default?: any;
@@ -276,11 +305,22 @@ export interface OAuthFlowsObject {
   password?: OAuthFlowObject;
   clientCredentials?: OAuthFlowObject;
   authorizationCode?: OAuthFlowObject;
+  /**
+   * OAS 3.2 OAuth 2.0 Device Authorization Flow (RFC 8628).
+   */
+  deviceAuthorization?: OAuthDeviceAuthorizationFlowObject;
 }
 
 export interface OAuthFlowObject {
   authorizationUrl?: string;
   tokenUrl?: string;
+  refreshUrl?: string;
+  scopes: ScopesObject;
+}
+
+export interface OAuthDeviceAuthorizationFlowObject {
+  deviceAuthorizationUrl: string;
+  tokenUrl: string;
   refreshUrl?: string;
   scopes: ScopesObject;
 }

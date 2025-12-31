@@ -1,4 +1,4 @@
-import { isEmpty, isFunction, omit } from 'lodash';
+import { isEmpty, isFunction, omit, pick } from 'lodash';
 import { DECORATORS } from '../constants';
 import {
   ApiPropertyOptions,
@@ -10,6 +10,7 @@ import {
   SchemaObject
 } from '../interfaces/open-api-spec.interface';
 import { isBuiltInType } from '../utils/is-built-in-type.util';
+import { removeUndefinedKeys } from '../utils/remove-undefined-keys';
 import { MimetypeContentWrapper } from './mimetype-content-wrapper';
 import { ModelPropertiesAccessor } from './model-properties-accessor';
 import { ResponseObjectMapper } from './response-object-mapper';
@@ -43,6 +44,48 @@ export class ResponseObjectFactory {
   ) {
     const { type, isArray } = response;
     response = omit(response, ['isArray']);
+
+    const isStreaming = (response as any).isStreaming;
+    const streamingContentType = (response as any).contentType as
+      | string
+      | undefined;
+    if (isStreaming) {
+      const exampleKeys = ['example', 'examples'];
+      const contentType = streamingContentType || produces?.[0];
+
+      let itemSchema: any;
+      if (type) {
+        if (isBuiltInType(type as Function) || typeof type === 'string') {
+          const typeName =
+            type && isFunction(type)
+              ? (type as Function).name
+              : (type as string);
+          const swaggerType =
+            this.swaggerTypesMapper.mapTypeToOpenAPIType(typeName);
+          itemSchema = { type: swaggerType };
+        } else {
+          const name = this.schemaObjectFactory.exploreModelSchema(
+            type as Function,
+            schemas
+          );
+          itemSchema = { $ref: `#/components/schemas/${name}` };
+        }
+      }
+
+      const mediaTypeObject = removeUndefinedKeys({
+        itemSchema,
+        ...pick(response as any, exampleKeys)
+      });
+
+      const keysToOmit = [...exampleKeys, 'type', 'isStreaming', 'contentType'];
+
+      return {
+        ...omit(response as any, keysToOmit),
+        ...(contentType
+          ? { content: { [contentType]: mediaTypeObject } }
+          : undefined)
+      };
+    }
 
     if (!type) {
       return this.responseObjectMapper.wrapSchemaWithContent(

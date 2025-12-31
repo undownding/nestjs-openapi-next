@@ -211,10 +211,22 @@ export function ApiSchema() {
 export function ApiSecurity() {
   return () => {};
 }
+export function ApiSecurityDeviceFlow() {
+  return () => {};
+}
 export function ApiTags() {
   return () => {};
 }
+export function ApiTagGroup() {
+  return () => {};
+}
 export function ApiCallbacks() {
+  return () => {};
+}
+export function ApiQueryMethod() {
+  return () => {};
+}
+export function ApiStreamingResponse() {
   return () => {};
 }
 export function ApiLink() {
