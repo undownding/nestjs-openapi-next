@@ -2,7 +2,7 @@ import { DECORATORS } from '../constants';
 import { TagObject } from '../interfaces/open-api-spec.interface';
 import { ApiTags } from './api-use-tags.decorator';
 
-export type ApiTagGroupKind = 'audience' | 'badge' | 'nav' | string;
+export type ApiTagGroupKind = 'audience' | 'badge' | 'nav' | (string & {});
 
 export interface ApiTagGroupOptions
   extends Pick<

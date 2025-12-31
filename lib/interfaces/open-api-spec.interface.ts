@@ -210,7 +210,7 @@ export interface TagObject {
   /**
    * OAS 3.2 Enhanced Tags (tag kind).
    */
-  kind?: string;
+  kind?: 'audience' | 'badge' | 'nav' | (string & {});
 }
 
 export type ExamplesObject = Record<string, ExampleObject | ReferenceObject>;
