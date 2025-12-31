@@ -12,4 +12,3 @@ import { ApiSecurity } from './api-security.decorator';
 export function ApiSecurityDeviceFlow(name: string, scopes: string[]) {
   return ApiSecurity(name, scopes);
 }
-

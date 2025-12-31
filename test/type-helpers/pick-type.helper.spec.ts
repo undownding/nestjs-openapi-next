@@ -37,7 +37,7 @@ describe('PickType', () => {
 
   describe('OpenAPI metadata', () => {
     it('should pick "login" property', () => {
-      const prototype = (UpdateUserDto.prototype as any) as Type<unknown>;
+      const prototype = UpdateUserDto.prototype as any as Type<unknown>;
 
       modelPropertiesAccessor.applyMetadataFactory(prototype);
       expect(modelPropertiesAccessor.getModelProperties(prototype)).toEqual([

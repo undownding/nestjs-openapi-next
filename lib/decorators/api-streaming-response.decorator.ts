@@ -1,8 +1,13 @@
 import { Type } from '@nestjs/common';
-import { ApiResponse, ApiResponseCommonMetadata } from './api-response.decorator';
+import {
+  ApiResponse,
+  ApiResponseCommonMetadata
+} from './api-response.decorator';
 
-export interface ApiStreamingResponseOptions
-  extends Omit<ApiResponseCommonMetadata, 'type' | 'isArray' | 'content'> {
+export interface ApiStreamingResponseOptions extends Omit<
+  ApiResponseCommonMetadata,
+  'type' | 'isArray' | 'content'
+> {
   /**
    * Response media type for the stream, e.g. `text/event-stream`.
    */
@@ -34,4 +39,3 @@ export function ApiStreamingResponse(
     contentType: options.contentType
   } as any);
 }
-

@@ -10,4 +10,3 @@ import { createMethodDecorator } from './helpers';
 export function ApiQueryMethod(): MethodDecorator {
   return createMethodDecorator(DECORATORS.API_QUERY_METHOD, true);
 }
-

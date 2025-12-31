@@ -175,7 +175,7 @@ export function replaceImportPath(
 
   try {
     if (isAbsolute(importPath)) {
-      throw {};
+      throw new Error('Absolute import paths are not supported.');
     }
 
     require.resolve(importPath);

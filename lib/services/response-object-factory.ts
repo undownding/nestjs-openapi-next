@@ -57,7 +57,9 @@ export class ResponseObjectFactory {
       if (type) {
         if (isBuiltInType(type as Function) || typeof type === 'string') {
           const typeName =
-            type && isFunction(type) ? (type as Function).name : (type as string);
+            type && isFunction(type)
+              ? (type as Function).name
+              : (type as string);
           const swaggerType =
             this.swaggerTypesMapper.mapTypeToOpenAPIType(typeName);
           itemSchema = { type: swaggerType };
@@ -75,12 +77,7 @@ export class ResponseObjectFactory {
         ...pick(response as any, exampleKeys)
       });
 
-      const keysToOmit = [
-        ...exampleKeys,
-        'type',
-        'isStreaming',
-        'contentType'
-      ];
+      const keysToOmit = [...exampleKeys, 'type', 'isStreaming', 'contentType'];
 
       return {
         ...omit(response as any, keysToOmit),

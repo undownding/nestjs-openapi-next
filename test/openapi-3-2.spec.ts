@@ -170,4 +170,3 @@ describe('OpenAPI 3.2 extensions', () => {
     await app.close();
   });
 });
-

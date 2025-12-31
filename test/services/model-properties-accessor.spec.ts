@@ -21,7 +21,7 @@ describe('ModelPropertiesAccessor', () => {
     it('should return all decorated properties', () => {
       expect(
         modelPropertiesAccessor.getModelProperties(
-          (CreateUserDto.prototype as any) as Type<any>
+          CreateUserDto.prototype as any as Type<any>
         )
       ).toEqual(['login', 'password']);
     });

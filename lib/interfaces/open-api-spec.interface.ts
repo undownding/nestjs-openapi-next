@@ -160,8 +160,10 @@ export interface EncodingPropertyObject {
   allowReserved?: boolean;
 }
 
-export interface ResponsesObject
-  extends Record<string, ResponseObject | ReferenceObject | undefined> {
+export interface ResponsesObject extends Record<
+  string,
+  ResponseObject | ReferenceObject | undefined
+> {
   default?: ResponseObject | ReferenceObject;
 }
 
@@ -188,12 +190,12 @@ export interface LinkObject {
   operationRef?: string;
   operationId?: string;
   parameters?: LinkParametersObject;
-  requestBody?: any | string;
+  requestBody?: unknown;
   description?: string;
   server?: ServerObject;
 }
 
-export type LinkParametersObject = Record<string, any>;
+export type LinkParametersObject = Record<string, unknown>;
 export type HeaderObject = BaseParameterObject;
 export interface TagObject {
   name: string;
@@ -237,7 +239,9 @@ export interface SchemaObject {
   items?: SchemaObject | ReferenceObject;
   properties?: Record<string, SchemaObject | ReferenceObject>;
   additionalProperties?: SchemaObject | ReferenceObject | boolean;
-  patternProperties?: SchemaObject | ReferenceObject | any;
+  patternProperties?:
+    | Record<string, SchemaObject | ReferenceObject>
+    | undefined;
   description?: string;
   format?: string;
   default?: any;

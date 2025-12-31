@@ -315,10 +315,10 @@ export class SwaggerExplorer {
     if (isUndefined(methodPath)) {
       return undefined;
     }
-    const requestMethodMetadata = Reflect.getMetadata(METHOD_METADATA, method) as
-      | RequestMethod
-      | string
-      | undefined;
+    const requestMethodMetadata = Reflect.getMetadata(
+      METHOD_METADATA,
+      method
+    ) as RequestMethod | string | undefined;
 
     // OAS 3.2 HTTP QUERY method override
     const isQueryMethod = Reflect.getMetadata(

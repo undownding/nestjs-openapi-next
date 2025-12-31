@@ -41,7 +41,7 @@ export class PaginationQuery {
         maximum: 100,
         format: 'int32'
       }
-    ],
+    ]
   })
   constrainedLimit?: number;
 
@@ -61,7 +61,7 @@ export class PaginationQuery {
   @ApiProperty({
     enum: LettersEnum,
     enumName: 'Letter',
-    isArray: true,
+    isArray: true
   })
   letters: LettersEnum[];
 
