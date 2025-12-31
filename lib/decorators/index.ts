@@ -21,9 +21,13 @@ export {
   ApiResponseProperty
 } from './api-property.decorator';
 export * from './api-query.decorator';
+export * from './api-query-method.decorator';
 export * from './api-response.decorator';
+export * from './api-streaming-response.decorator';
 export * from './api-security.decorator';
+export * from './api-security-device-flow.decorator';
 export * from './api-use-tags.decorator';
+export * from './api-tag-group.decorator';
 export * from './api-callbacks.decorator';
 export * from './api-extension.decorator';
 export * from './api-schema.decorator';

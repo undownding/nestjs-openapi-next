@@ -64,6 +64,15 @@ export interface PathItemObject {
   summary?: string;
   description?: string;
   get?: OperationObject;
+  /**
+   * Non-standard method supported by some tooling.
+   * Kept for backward-compat with existing behavior.
+   */
+  search?: OperationObject;
+  /**
+   * OAS 3.2 HTTP QUERY method support.
+   */
+  query?: OperationObject;
   put?: OperationObject;
   post?: OperationObject;
   delete?: OperationObject;
@@ -133,6 +142,10 @@ export interface RequestBodyObject {
 export type ContentObject = Record<string, MediaTypeObject>;
 export interface MediaTypeObject {
   schema?: SchemaObject | ReferenceObject;
+  /**
+   * OAS 3.2 streaming schema for individual items.
+   */
+  itemSchema?: SchemaObject | ReferenceObject;
   examples?: ExamplesObject;
   example?: any;
   encoding?: EncodingObject;
@@ -186,6 +199,14 @@ export interface TagObject {
   name: string;
   description?: string;
   externalDocs?: ExternalDocumentationObject;
+  /**
+   * OAS 3.2 Enhanced Tags (nested tags).
+   */
+  parent?: string;
+  /**
+   * OAS 3.2 Enhanced Tags (tag kind).
+   */
+  kind?: string;
 }
 
 export type ExamplesObject = Record<string, ExampleObject | ReferenceObject>;
@@ -276,11 +297,22 @@ export interface OAuthFlowsObject {
   password?: OAuthFlowObject;
   clientCredentials?: OAuthFlowObject;
   authorizationCode?: OAuthFlowObject;
+  /**
+   * OAS 3.2 OAuth 2.0 Device Authorization Flow (RFC 8628).
+   */
+  deviceAuthorization?: OAuthDeviceAuthorizationFlowObject;
 }
 
 export interface OAuthFlowObject {
   authorizationUrl?: string;
   tokenUrl?: string;
+  refreshUrl?: string;
+  scopes: ScopesObject;
+}
+
+export interface OAuthDeviceAuthorizationFlowObject {
+  deviceAuthorizationUrl: string;
+  tokenUrl: string;
   refreshUrl?: string;
   scopes: ScopesObject;
 }

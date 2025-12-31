@@ -315,10 +315,22 @@ export class SwaggerExplorer {
     if (isUndefined(methodPath)) {
       return undefined;
     }
-    const requestMethod = Reflect.getMetadata(
-      METHOD_METADATA,
+    const requestMethodMetadata = Reflect.getMetadata(METHOD_METADATA, method) as
+      | RequestMethod
+      | string
+      | undefined;
+
+    // OAS 3.2 HTTP QUERY method override
+    const isQueryMethod = Reflect.getMetadata(
+      DECORATORS.API_QUERY_METHOD,
       method
-    ) as RequestMethod;
+    );
+
+    const requestMethodForPathFactory: RequestMethod =
+      typeof requestMethodMetadata === 'number'
+        ? requestMethodMetadata
+        : // RoutePathFactory expects a Nest `RequestMethod` enum value.
+          RequestMethod.GET;
 
     const methodVersion: VersionValue | undefined = Reflect.getMetadata(
       VERSION_METADATA,
@@ -346,7 +358,7 @@ export class SwaggerExplorer {
         ctrlPath: this.reflectControllerPath(metatype),
         versioningOptions: applicationConfig.getVersioning()
       },
-      requestMethod
+      requestMethodForPathFactory
     );
 
     return flatten(
@@ -356,7 +368,11 @@ export class SwaggerExplorer {
           DECORATORS.API_EXTENSION,
           method
         );
-        if (requestMethod === RequestMethod.ALL) {
+        if (
+          !isQueryMethod &&
+          typeof requestMethodMetadata === 'number' &&
+          requestMethodMetadata === RequestMethod.ALL
+        ) {
           // Workaround for the invalid "ALL" Method
           const validMethods = [
             'get',
@@ -386,8 +402,15 @@ export class SwaggerExplorer {
         const isAlias =
           allRoutePaths.length > 1 && allRoutePaths.length !== versions.length;
         const methodKey = isAlias ? `${method.name}[${index}]` : method.name;
+
+        const httpMethodKey = isQueryMethod
+          ? 'query'
+          : typeof requestMethodMetadata === 'string'
+            ? requestMethodMetadata.toLowerCase()
+            : RequestMethod[requestMethodForPathFactory].toLowerCase();
+
         return {
-          method: RequestMethod[requestMethod].toLowerCase(),
+          method: httpMethodKey,
           path: fullPath === '' ? '/' : fullPath,
           operationId: this.getOperationId(instance, methodKey, pathVersion),
           ...apiExtension
