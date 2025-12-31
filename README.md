@@ -36,6 +36,10 @@ npm i --save github:undownding/nestjs-openapi-next
 
 ### Install from npm
 
+```bash
+npm i --save nestjs-openapi-next
+```
+
 ## Quick start (same as upstream)
 
 See the official Nest OpenAPI tutorial: `https://docs.nestjs.com/openapi/introduction`
