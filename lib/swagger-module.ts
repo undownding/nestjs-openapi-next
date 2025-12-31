@@ -47,14 +47,19 @@ export class SwaggerModule {
         continue;
       }
       const existing = byName.get(tag.name) || { name: tag.name };
-      // Prefer explicit config values for standard fields, but enrich with
-      // Enhanced Tag fields from scanned decorators.
-      byName.set(tag.name, {
-        ...tag,
-        ...existing,
-        ...(tag.parent !== undefined ? { parent: tag.parent } : {}),
-        ...(tag.kind !== undefined ? { kind: tag.kind } : {})
-      });
+      const merged: TagObject = { name: tag.name };
+
+      // Prefer explicit config values for standard fields, but allow scanned
+      // decorators to fill gaps.
+      merged.summary = existing.summary ?? tag.summary;
+      merged.description = existing.description ?? tag.description;
+      merged.externalDocs = existing.externalDocs ?? tag.externalDocs;
+
+      // Enhanced tag fields: merge in scanned values unless already present.
+      merged.parent = existing.parent ?? tag.parent;
+      merged.kind = existing.kind ?? tag.kind;
+
+      byName.set(tag.name, merged);
     }
 
     const merged = [...byName.values()];

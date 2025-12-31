@@ -195,6 +195,13 @@ export class SwaggerScanner {
           const previous = byName.get(group.name) || { name: group.name };
           byName.set(group.name, {
             ...previous,
+            ...(group.summary !== undefined ? { summary: group.summary } : {}),
+            ...(group.description !== undefined
+              ? { description: group.description }
+              : {}),
+            ...(group.externalDocs !== undefined
+              ? { externalDocs: group.externalDocs }
+              : {}),
             ...(group.parent !== undefined ? { parent: group.parent } : {}),
             ...(group.kind !== undefined ? { kind: group.kind } : {})
           });

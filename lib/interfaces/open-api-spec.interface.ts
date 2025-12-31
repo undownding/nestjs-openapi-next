@@ -197,6 +197,10 @@ export type LinkParametersObject = Record<string, any>;
 export type HeaderObject = BaseParameterObject;
 export interface TagObject {
   name: string;
+  /**
+   * OAS 3.2 adds a short display summary for tags.
+   */
+  summary?: string;
   description?: string;
   externalDocs?: ExternalDocumentationObject;
   /**

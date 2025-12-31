@@ -5,8 +5,14 @@ import { ApiTags } from './api-use-tags.decorator';
 export type ApiTagGroupKind = 'audience' | 'badge' | 'nav' | string;
 
 export interface ApiTagGroupOptions
-  extends Pick<TagObject, 'name' | 'parent' | 'kind'> {
+  extends Pick<
+    TagObject,
+    'name' | 'summary' | 'description' | 'externalDocs' | 'parent' | 'kind'
+  > {
   name: string;
+  summary?: string;
+  description?: string;
+  externalDocs?: TagObject['externalDocs'];
   parent?: string;
   kind?: ApiTagGroupKind;
 }

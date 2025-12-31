@@ -38,7 +38,13 @@ describe('OpenAPI 3.2 extensions', () => {
   });
 
   it('supports Enhanced Tags (parent/kind) via @ApiTagGroup()', async () => {
-    @ApiTagGroup({ name: 'Cats', parent: 'Admin', kind: 'nav' })
+    @ApiTagGroup({
+      name: 'Cats',
+      summary: 'Cats',
+      description: 'Cat operations',
+      parent: 'Admin',
+      kind: 'nav'
+    })
     @Controller('cats')
     class CatsController {
       @Get()
@@ -60,6 +66,8 @@ describe('OpenAPI 3.2 extensions', () => {
       expect.arrayContaining([
         expect.objectContaining({
           name: 'Cats',
+          summary: 'Cats',
+          description: 'Cat operations',
           parent: 'Admin',
           kind: 'nav'
         })
