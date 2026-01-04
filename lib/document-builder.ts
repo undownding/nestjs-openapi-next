@@ -72,6 +72,16 @@ export class DocumentBuilder {
     return this;
   }
 
+  public addServerWithName(
+    name: string,
+    url: string,
+    description?: string,
+    variables?: Record<string, ServerVariableObject>
+  ): this {
+    this.document.servers.push({ name, url, description, variables });
+    return this;
+  }
+
   public setExternalDoc(description: string, url: string): this {
     this.document.externalDocs = { description, url };
     return this;
