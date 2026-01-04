@@ -201,6 +201,27 @@ Notes:
 - `@ApiSecurityDeviceFlow()` is a convenience wrapper around `@ApiSecurity(name, scopes)` for requirements.
 - The device flow scheme definition still comes from `addOAuth2({ flows: { deviceAuthorization: ... } })`.
 
+### 5) Named servers: `DocumentBuilder.addServerWithName()`
+
+This fork extends the `ServerObject` typing with an optional `name?: string`, and provides a convenience builder method to populate it.
+
+```ts
+import { DocumentBuilder } from '@nestjs/swagger';
+
+const config = new DocumentBuilder()
+  .setTitle('t')
+  .setVersion('1')
+  .addServerWithName('prod', 'https://api.example.com', 'Production')
+  .addServerWithName('local', 'https://{host}', 'Local', {
+    host: { default: 'localhost' }
+  })
+  .build();
+```
+
+Signature:
+
+- `addServerWithName(name, url, description?, variables?)`
+
 ## Upstream relationship / migration notes
 
 - The OAS 3.2 support in PR #1 is implemented as an additive extension to minimize breaking changes.
