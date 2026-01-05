@@ -2,9 +2,13 @@ import { DECORATORS } from '../constants';
 import { TagObject } from '../interfaces/open-api-spec.interface';
 import { ApiTags } from './api-use-tags.decorator';
 
-export type ApiTagGroupKind = 'audience' | 'badge' | 'nav' | (string & {});
+export type ApiTagKind = 'audience' | 'badge' | 'nav' | (string & {});
+/**
+ * @deprecated Use `ApiTagKind`.
+ */
+export type ApiTagGroupKind = ApiTagKind;
 
-export interface ApiTagGroupOptions extends Pick<
+export interface ApiTagOptions extends Pick<
   TagObject,
   | 'name'
   | 'summary'
@@ -20,7 +24,7 @@ export interface ApiTagGroupOptions extends Pick<
   description?: string;
   externalDocs?: TagObject['externalDocs'];
   parent?: string;
-  kind?: ApiTagGroupKind;
+  kind?: ApiTagKind;
 }
 
 /**
@@ -33,9 +37,9 @@ export interface ApiTagGroupOptions extends Pick<
  *
  * @publicApi
  */
-export function ApiTagGroup(options: ApiTagGroupOptions): ClassDecorator {
+export function ApiTag(options: ApiTagOptions): ClassDecorator {
   return (target: Function) => {
-    const previous: ApiTagGroupOptions[] =
+    const previous: ApiTagOptions[] =
       Reflect.getMetadata(DECORATORS.API_TAG_GROUP, target) || [];
     Reflect.defineMetadata(
       DECORATORS.API_TAG_GROUP,
@@ -48,3 +52,18 @@ export function ApiTagGroup(options: ApiTagGroupOptions): ClassDecorator {
     return target as any;
   };
 }
+
+/**
+ * @deprecated Use `ApiTag(options)` instead. This alias will be removed in a
+ * future major version.
+ *
+ * @publicApi
+ */
+export function ApiTagGroup(options: ApiTagOptions): ClassDecorator {
+  return ApiTag(options);
+}
+
+/**
+ * @deprecated Use `ApiTagOptions`.
+ */
+export type ApiTagGroupOptions = ApiTagOptions;

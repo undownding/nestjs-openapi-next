@@ -1,48 +1,49 @@
 # nestjs-openapi-next
 
-`nestjs-openapi-next` 是 `@nestjs/swagger` 的一个 fork（上游：`nestjs/swagger`），目标是在尽量保持上游使用方式不变的前提下，补齐一些 **OpenAPI 3.2** 能力与常见的 **OpenAPI 扩展字段（x-）**，方便与 Redoc / Swagger UI 等工具协同。
+`nestjs-openapi-next` is a fork of `@nestjs/swagger` (upstream: `nestjs/swagger`).
+The goal is to keep upstream behavior as compatible as possible while adding a set of **OpenAPI 3.2** features and widely-used **OpenAPI extension fields** (`x-`) that are commonly consumed by tools like Redoc.
 
-> 注意：本仓库的 `package.json` 目前仍沿用 `@nestjs/swagger` 的包名。如果你的项目同时依赖上游包，请使用 lockfile / overrides / resolutions 等方式避免依赖冲突。
+> Note: this repository's `package.json` may still use the package name `@nestjs/swagger`. If your project also depends on the upstream package, use lockfiles / overrides / resolutions to avoid dependency conflicts.
 
-## 与上游的主要区别
+## Key differences from upstream
 
-- **更完整的 OpenAPI 3.2 类型支持**
-  - 例如 `TagObject.summary`、`OAuthFlowsObject.deviceAuthorization` 等。
-- **增强的 Tag 能力**
-  - `@ApiTagGroup()`：在 class（controller）级别定义 tag 元数据（如 `summary` / `description` / `parent` / `kind`），并合并进最终 `document.tags`。
-  - `x-displayName`：对 tag 新增 `x-displayName` 输出，并与 `summary` **等价/互相镜像**（声明任意一个，最终会同时写入两者）。
-  - `x-tagGroups`：支持输出根级别 `x-tagGroups`（常用于 Redoc 的分组展示）。当使用 `parent` 建立 tag 关系时，会自动从 `document.tags` 推导生成；也可以在 `DocumentBuilder` 中手动配置（见下方示例）。
-- **补充若干 OAS 3.2 行为**
-  - HTTP `QUERY` method：`@ApiQueryMethod()` 让某个 handler 生成 `paths['/x'].query`。
-  - 流式响应：`@ApiStreamingResponse()` 在 mediaType 下输出 `itemSchema`（例如 SSE `text/event-stream`）。
-  - OAuth2 Device Authorization Flow：类型与便捷装饰器 `@ApiSecurityDeviceFlow()`。
-- **便利方法**
-  - `DocumentBuilder.addServerWithName()`：允许为 server 增加 `name` 字段（非标准，但常见于工具链）。
+- **Richer OpenAPI 3.2 typings**
+  - e.g. `TagObject.summary`, `OAuthFlowsObject.deviceAuthorization`, etc.
+- **Enhanced tag support**
+  - `@ApiTag(options)` (class/controller-level): defines tag metadata (`summary`, `x-displayName`, `description`, `parent`, `kind`, ...) and merges it into the top-level `document.tags`.
+  - `x-displayName` support for tags, mirrored with `summary` (setting either results in both fields being written with the same value).
+  - Root-level `x-tagGroups` support (commonly used by Redoc). If you use `parent` to form relationships, `x-tagGroups` is auto-derived; you can also set it explicitly via `DocumentBuilder`.
+- **Additional OAS 3.2 behaviors**
+  - HTTP `QUERY` method via `@ApiQueryMethod()` (emits `paths['/x'].query`).
+  - Streaming responses via `@ApiStreamingResponse()` (`itemSchema`, e.g. SSE `text/event-stream`).
+  - OAuth2 Device Authorization Flow typing + `@ApiSecurityDeviceFlow()` helper.
+- **Convenience APIs**
+  - `DocumentBuilder.addServerWithName()` for a non-standard-but-common `server.name`.
 
-测试覆盖：`test/openapi-3-2.spec.ts`。
+Test coverage: `test/openapi-3-2.spec.ts`.
 
-## 兼容性
+## Compatibility
 
-- **NestJS**：peerDependencies 目标为 `@nestjs/common` / `@nestjs/core` `^11.0.1`
-- **运行时依赖**：整体与上游 `@nestjs/swagger` 对齐（`reflect-metadata`、可选的 `class-validator` / `class-transformer` 等）
+- **NestJS**: peerDependencies target `@nestjs/common` / `@nestjs/core` `^11.0.1`
+- **Runtime deps**: aligned with upstream `@nestjs/swagger` (`reflect-metadata`, optional `class-validator` / `class-transformer`, etc.)
 
-## 安装
+## Installation
 
-### 从 GitHub 安装（推荐）
+### Install from this fork (recommended)
 
 ```bash
 npm i --save github:undownding/nestjs-openapi-next
 ```
 
-### 从 npm 安装
+### Install from npm
 
 ```bash
 npm i --save nestjs-openapi-next
 ```
 
-## 快速开始（与上游一致）
+## Quick start (same as upstream)
 
-参考 Nest 官方 OpenAPI 文档：`https://docs.nestjs.com/openapi/introduction`
+See the official Nest OpenAPI tutorial: `https://docs.nestjs.com/openapi/introduction`
 
 ```ts
 import { NestFactory } from '@nestjs/core';
@@ -54,7 +55,7 @@ const config = new DocumentBuilder()
   .setTitle('Example')
   .setDescription('API description')
   .setVersion('1.0')
-  // 如需声明 OAS 3.2，请显式设置：
+  // If you want the document to declare OAS 3.2, set it explicitly:
   .setOpenAPIVersion('3.2.0')
   .build();
 
@@ -62,22 +63,22 @@ const document = SwaggerModule.createDocument(app, config);
 SwaggerModule.setup('api', app, document);
 ```
 
-## 使用说明
+## Usage
 
-### 1) `x-displayName`（与 `summary` 等价）
+### 1) `@ApiTag(options)` (recommended) and deprecation of `@ApiTagGroup()`
 
-在 controller 上使用 `@ApiTagGroup()` 定义 tag 元数据时：
+`@ApiTag(options)` is the primary decorator for defining tag metadata at the controller level.
 
-- 你可以写 `summary`，也可以写 `'x-displayName'`；
-- 最终生成的 `document.tags` 会同时包含 `summary` 与 `'x-displayName'`，两者值保持一致。
+`@ApiTagGroup(options)` is kept as a backward-compatible alias, but is **deprecated** and may be removed in a future major version.
 
 ```ts
 import { Controller, Get } from '@nestjs/common';
-import { ApiTagGroup } from '@nestjs/swagger';
+import { ApiTag } from '@nestjs/swagger';
 
-@ApiTagGroup({
+@ApiTag({
   name: 'Customers',
-  summary: 'Customers' // 或者写 'x-displayName': 'Customers'
+  summary: 'Customers'
+  // you may also set: 'x-displayName': 'Customers'
 })
 @Controller('customers')
 export class CustomersController {
@@ -88,23 +89,30 @@ export class CustomersController {
 }
 ```
 
-### 2) `x-tagGroups`（按 tag 分组）
+### 2) Tag `x-displayName` (mirrored with `summary`)
 
-#### 自动推导（推荐）
+This fork treats tag `summary` and `x-displayName` as equivalent display fields:
 
-当 tag 使用 `parent` 建立关系时，会自动推导并输出根级别 `x-tagGroups`：
+- set either one;
+- the generated `document.tags` will contain **both** `summary` and `x-displayName` with the same value.
+
+### 3) Root-level `x-tagGroups` (tag grouping)
+
+#### Auto-derived (recommended)
+
+If you use tag `parent` relationships (via `@ApiTag()`), the root-level `x-tagGroups` will be derived automatically:
 
 ```ts
-@ApiTagGroup({ name: 'Customers' })
+@ApiTag({ name: 'Customers' })
 @Controller('customers')
 export class CustomersController {}
 
-@ApiTagGroup({ name: 'Customer Authentication', parent: 'Customers' })
+@ApiTag({ name: 'Customer Authentication', parent: 'Customers' })
 @Controller('auth')
 export class AuthController {}
 ```
 
-生成效果（示意）：
+Illustrative output:
 
 ```yaml
 tags:
@@ -117,9 +125,9 @@ x-tagGroups:
       - Customer Authentication
 ```
 
-#### 手动配置
+#### Manual configuration
 
-也可以通过 `DocumentBuilder.addTagGroup()` 直接写入扩展字段：
+You can also set `x-tagGroups` explicitly via `DocumentBuilder.addTagGroup()`:
 
 ```ts
 const config = new DocumentBuilder()
@@ -131,7 +139,7 @@ const config = new DocumentBuilder()
   .build();
 ```
 
-### 3) HTTP `QUERY` method：`@ApiQueryMethod()`
+### 4) HTTP `QUERY` method: `@ApiQueryMethod()`
 
 ```ts
 import { Controller, Post } from '@nestjs/common';
@@ -147,7 +155,7 @@ export class QueryController {
 }
 ```
 
-### 4) 流式响应：`@ApiStreamingResponse()`（`itemSchema`）
+### 5) Streaming responses: `@ApiStreamingResponse()` (`itemSchema`)
 
 ```ts
 import { Controller, Get } from '@nestjs/common';
@@ -172,7 +180,7 @@ export class EventsController {
 }
 ```
 
-### 5) OAuth2 Device Authorization Flow：`flows.deviceAuthorization` + `@ApiSecurityDeviceFlow()`
+### 6) OAuth2 Device Authorization Flow: `flows.deviceAuthorization` + `@ApiSecurityDeviceFlow()`
 
 ```ts
 import { Controller, Get } from '@nestjs/common';
@@ -208,4 +216,4 @@ const config = new DocumentBuilder()
 
 ## License
 
-MIT（见 `LICENSE`）。本仓库是上游 `nestjs/swagger` 的衍生作品，遵循其 MIT 许可证。
+MIT (see `LICENSE`). This repository is a derivative work of the upstream `nestjs/swagger` project under the MIT license.

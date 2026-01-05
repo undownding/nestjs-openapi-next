@@ -6,7 +6,7 @@ import {
   ApiQueryMethod,
   ApiSecurityDeviceFlow,
   ApiStreamingResponse,
-  ApiTagGroup
+  ApiTag
 } from '../lib/decorators';
 import { DocumentBuilder } from '../lib/document-builder';
 import { SwaggerModule } from '../lib/swagger-module';
@@ -37,8 +37,8 @@ describe('OpenAPI 3.2 extensions', () => {
     await app.close();
   });
 
-  it('supports Enhanced Tags (parent/kind) via @ApiTagGroup()', async () => {
-    @ApiTagGroup({
+  it('supports Enhanced Tags (parent/kind) via @ApiTag()', async () => {
+    @ApiTag({
       name: 'Cats',
       summary: 'Cats',
       description: 'Cat operations',
@@ -82,7 +82,7 @@ describe('OpenAPI 3.2 extensions', () => {
   });
 
   it('derives x-tagGroups from Enhanced Tags (parent) metadata', async () => {
-    @ApiTagGroup({
+    @ApiTag({
       name: 'Customers',
       summary: 'Customers'
     })
@@ -94,7 +94,7 @@ describe('OpenAPI 3.2 extensions', () => {
       }
     }
 
-    @ApiTagGroup({
+    @ApiTag({
       name: 'Customer Authentication',
       parent: 'Customers'
     })
@@ -106,7 +106,7 @@ describe('OpenAPI 3.2 extensions', () => {
       }
     }
 
-    @ApiTagGroup({
+    @ApiTag({
       name: 'AML',
       parent: 'Customers'
     })
