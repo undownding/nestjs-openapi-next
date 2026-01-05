@@ -3,8 +3,6 @@
 `nestjs-openapi-next` is a fork of `@nestjs/swagger` (upstream: `nestjs/swagger`).
 The goal is to keep upstream behavior as compatible as possible while adding a set of **OpenAPI 3.2** features and widely-used **OpenAPI extension fields** (`x-`) that are commonly consumed by tools like Redoc.
 
-> Note: this repository's `package.json` may still use the package name `@nestjs/swagger`. If your project also depends on the upstream package, use lockfiles / overrides / resolutions to avoid dependency conflicts.
-
 ## Key differences from upstream
 
 - **Richer OpenAPI 3.2 typings**
@@ -41,7 +39,7 @@ See the official Nest OpenAPI tutorial: `https://docs.nestjs.com/openapi/introdu
 
 ```ts
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { DocumentBuilder, SwaggerModule } from 'nestjs-openapi-next';
 
 const app = await NestFactory.create(AppModule);
 
@@ -67,7 +65,7 @@ SwaggerModule.setup('api', app, document);
 
 ```ts
 import { Controller, Get } from '@nestjs/common';
-import { ApiTag } from '@nestjs/swagger';
+import { ApiTag } from 'nestjs-openapi-next';
 
 @ApiTag({
   name: 'Customers',
@@ -137,7 +135,7 @@ const config = new DocumentBuilder()
 
 ```ts
 import { Controller, Post } from '@nestjs/common';
-import { ApiQueryMethod } from '@nestjs/swagger';
+import { ApiQueryMethod } from 'nestjs-openapi-next';
 
 @Controller()
 export class QueryController {
@@ -153,7 +151,7 @@ export class QueryController {
 
 ```ts
 import { Controller, Get } from '@nestjs/common';
-import { ApiProperty, ApiStreamingResponse } from '@nestjs/swagger';
+import { ApiProperty, ApiStreamingResponse } from 'nestjs-openapi-next';
 
 class SseItemDto {
   @ApiProperty()
@@ -178,7 +176,7 @@ export class EventsController {
 
 ```ts
 import { Controller, Get } from '@nestjs/common';
-import { ApiSecurityDeviceFlow, DocumentBuilder } from '@nestjs/swagger';
+import { ApiSecurityDeviceFlow, DocumentBuilder } from 'nestjs-openapi-next';
 
 @Controller()
 export class SecuredController {
