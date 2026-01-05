@@ -22,6 +22,7 @@ export {
 } from './api-property.decorator';
 export * from './api-query.decorator';
 export * from './api-query-method.decorator';
+export * from './api-webhook.decorator';
 export * from './api-response.decorator';
 export * from './api-streaming-response.decorator';
 export * from './api-security.decorator';

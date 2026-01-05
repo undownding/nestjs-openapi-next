@@ -326,6 +326,13 @@ export class SwaggerExplorer {
       method
     );
 
+    // OAS 3.1 Webhooks support: emit under `webhooks` instead of `paths`
+    const webhookMetadata = Reflect.getMetadata(DECORATORS.API_WEBHOOK, method) as
+      | string
+      | boolean
+      | undefined;
+    const isWebhook = Boolean(webhookMetadata);
+
     const requestMethodForPathFactory: RequestMethod =
       typeof requestMethodMetadata === 'number'
         ? requestMethodMetadata
@@ -412,6 +419,13 @@ export class SwaggerExplorer {
         return {
           method: httpMethodKey,
           path: fullPath === '' ? '/' : fullPath,
+          ...(isWebhook
+            ? {
+                isWebhook: true,
+                webhookName:
+                  typeof webhookMetadata === 'string' ? webhookMetadata : method.name
+              }
+            : {}),
           operationId: this.getOperationId(instance, methodKey, pathVersion),
           ...apiExtension
         };

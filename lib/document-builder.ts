@@ -7,6 +7,7 @@ import {
   ExtensionLocation,
   ExternalDocumentationObject,
   ParameterObject,
+  PathItemObject,
   SecurityRequirementObject,
   SecuritySchemeObject,
   ServerVariableObject,
@@ -267,6 +268,36 @@ export class DocumentBuilder {
       name: cookieName,
       ...options
     });
+    return this;
+  }
+
+  /**
+   * Adds/merges a webhook entry under the OpenAPI 3.1 `webhooks` root field.
+   *
+   * @see https://spec.openapis.org/oas/v3.1.0#webhooks-object
+   */
+  public addWebhook(name: string, item: PathItemObject): this {
+    const existing = (this.document as any).webhooks || {};
+    const prevItem = existing[name] || {};
+    (this.document as any).webhooks = {
+      ...existing,
+      [name]: {
+        ...prevItem,
+        ...clone(item)
+      }
+    };
+    return this;
+  }
+
+  /**
+   * Adds/merges multiple webhook entries under the OpenAPI 3.1 `webhooks` root field.
+   */
+  public addWebhooks(webhooks: Record<string, PathItemObject>): this {
+    const existing = (this.document as any).webhooks || {};
+    (this.document as any).webhooks = {
+      ...existing,
+      ...clone(webhooks)
+    };
     return this;
   }
 

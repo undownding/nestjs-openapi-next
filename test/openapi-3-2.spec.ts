@@ -6,7 +6,8 @@ import {
   ApiQueryMethod,
   ApiSecurityDeviceFlow,
   ApiStreamingResponse,
-  ApiTag
+  ApiTag,
+  ApiWebhook
 } from '../lib/decorators';
 import { DocumentBuilder } from '../lib/document-builder';
 import { SwaggerModule } from '../lib/swagger-module';
@@ -231,6 +232,66 @@ describe('OpenAPI 3.2 extensions', () => {
     expect(document.paths['/secure'].get.security).toEqual([
       { oauth2: ['read'] }
     ]);
+
+    await app.close();
+  });
+
+  it('supports OpenAPI 3.1 webhooks via DocumentBuilder.addWebhook()', async () => {
+    @Module({})
+    class AppModule {}
+
+    const app = await NestFactory.create(AppModule, { logger: false });
+    await app.init();
+
+    const config = new DocumentBuilder()
+      .setTitle('t')
+      .setVersion('1')
+      .addWebhook('newPet', {
+        post: {
+          summary: 'A new pet has been added',
+          responses: {
+            '200': {
+              description: 'ok'
+            }
+          }
+        }
+      })
+      .build();
+
+    const document = SwaggerModule.createDocument(app, config);
+
+    expect(document.webhooks).toBeDefined();
+    expect(document.webhooks?.newPet).toBeDefined();
+    expect(document.webhooks?.newPet.post).toBeDefined();
+    expect(document.webhooks?.newPet.post.responses['200']).toEqual(
+      expect.objectContaining({ description: 'ok' })
+    );
+
+    await app.close();
+  });
+
+  it('supports @ApiWebhook() to emit routes under document.webhooks', async () => {
+    @Controller()
+    class StripeWebhooksController {
+      @Post('stripe')
+      @ApiWebhook('stripeEvent')
+      stripe() {
+        return { ok: true };
+      }
+    }
+
+    @Module({ controllers: [StripeWebhooksController] })
+    class AppModule {}
+
+    const app = await NestFactory.create(AppModule, { logger: false });
+    await app.init();
+
+    const config = new DocumentBuilder().setTitle('t').setVersion('1').build();
+    const document = SwaggerModule.createDocument(app, config);
+
+    expect(document.webhooks?.stripeEvent).toBeDefined();
+    expect(document.webhooks?.stripeEvent.post).toBeDefined();
+    expect(document.paths['/stripe']).toBeUndefined();
 
     await app.close();
   });
