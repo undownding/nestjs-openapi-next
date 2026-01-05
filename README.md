@@ -29,12 +29,6 @@ Test coverage: `test/openapi-3-2.spec.ts`.
 
 ## Installation
 
-### Install from this fork (recommended)
-
-```bash
-npm i --save github:undownding/nestjs-openapi-next
-```
-
 ### Install from npm
 
 ```bash
