@@ -208,6 +208,30 @@ const config = new DocumentBuilder()
   .build();
 ```
 
+### 7) OpenAPI 3.1 Webhooks: `@ApiWebhook()`
+
+OpenAPI 3.1 introduces a root-level `webhooks` object for out-of-band callbacks
+initiated by the API provider.
+
+This fork supports emitting webhook operations via a decorator:
+
+```ts
+import { Controller, Post } from '@nestjs/common';
+import { ApiWebhook } from '@nestjs/swagger';
+
+@Controller()
+export class StripeWebhooksController {
+  @Post('stripe')
+  @ApiWebhook('stripeEvent')
+  stripe() {
+    return { ok: true };
+  }
+}
+```
+
+The generated document will contain `document.webhooks.stripeEvent.post`, and the
+corresponding route will **not** be emitted under `document.paths`.
+
 ## License
 
 MIT (see `LICENSE`). This repository is a derivative work of the upstream `nestjs/swagger` project under the MIT license.
