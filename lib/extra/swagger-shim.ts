@@ -229,6 +229,9 @@ export function ApiCallbacks() {
 export function ApiQueryMethod() {
   return () => {};
 }
+export function ApiWebhook() {
+  return () => {};
+}
 export function ApiStreamingResponse() {
   return () => {};
 }

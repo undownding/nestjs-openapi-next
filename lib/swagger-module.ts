@@ -29,6 +29,16 @@ import { validatePath } from './utils/validate-path.util';
 export class SwaggerModule {
   private static readonly metadataLoader = new MetadataLoader();
 
+  private static mergeWebhooks(
+    configWebhooks?: OpenAPIObject['webhooks'],
+    scannedWebhooks?: OpenAPIObject['webhooks']
+  ): OpenAPIObject['webhooks'] | undefined {
+    if (!configWebhooks && !scannedWebhooks) {
+      return undefined;
+    }
+    return assignTwoLevelsDeep({}, configWebhooks || {}, scannedWebhooks || {});
+  }
+
   private static mergeTags(
     configTags?: TagObject[],
     scannedTags?: TagObject[]
@@ -147,13 +157,18 @@ export class SwaggerModule {
     );
 
     const mergedTags = SwaggerModule.mergeTags(config.tags, document.tags);
+    const mergedWebhooks = SwaggerModule.mergeWebhooks(
+      (config as any).webhooks,
+      (document as any).webhooks
+    );
 
     const mergedDocument: OpenAPIObject = {
       openapi: '3.0.0',
       paths: {},
       ...config,
       ...document,
-      ...(mergedTags ? { tags: mergedTags } : {})
+      ...(mergedTags ? { tags: mergedTags } : {}),
+      ...(mergedWebhooks ? { webhooks: mergedWebhooks } : {})
     };
 
     // Auto-derive `x-tagGroups` from Enhanced Tags (`parent`) if not explicitly provided.
