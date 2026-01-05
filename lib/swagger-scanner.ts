@@ -192,10 +192,17 @@ export class SwaggerScanner {
           if (!group?.name) {
             continue;
           }
+          const normalizedSummary = group.summary ?? group['x-displayName'];
+          const normalizedDisplayName = group['x-displayName'] ?? group.summary;
           const previous = byName.get(group.name) || { name: group.name };
           byName.set(group.name, {
             ...previous,
-            ...(group.summary !== undefined ? { summary: group.summary } : {}),
+            ...(normalizedSummary !== undefined
+              ? { summary: normalizedSummary }
+              : {}),
+            ...(normalizedDisplayName !== undefined
+              ? { 'x-displayName': normalizedDisplayName }
+              : {}),
             ...(group.description !== undefined
               ? { description: group.description }
               : {}),

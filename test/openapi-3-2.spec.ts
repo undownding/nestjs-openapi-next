@@ -67,6 +67,7 @@ describe('OpenAPI 3.2 extensions', () => {
         expect.objectContaining({
           name: 'Cats',
           summary: 'Cats',
+          'x-displayName': 'Cats',
           description: 'Cat operations',
           parent: 'Admin',
           kind: 'nav'
@@ -76,6 +77,70 @@ describe('OpenAPI 3.2 extensions', () => {
     expect(document.paths['/cats'].get.tags).toEqual(
       expect.arrayContaining(['Cats'])
     );
+
+    await app.close();
+  });
+
+  it('derives x-tagGroups from Enhanced Tags (parent) metadata', async () => {
+    @ApiTagGroup({
+      name: 'Customers',
+      summary: 'Customers'
+    })
+    @Controller('customers')
+    class CustomersController {
+      @Get()
+      list() {
+        return [];
+      }
+    }
+
+    @ApiTagGroup({
+      name: 'Customer Authentication',
+      parent: 'Customers'
+    })
+    @Controller('auth')
+    class CustomerAuthController {
+      @Get()
+      auth() {
+        return { ok: true };
+      }
+    }
+
+    @ApiTagGroup({
+      name: 'AML',
+      parent: 'Customers'
+    })
+    @Controller('aml')
+    class AmlController {
+      @Get()
+      aml() {
+        return { ok: true };
+      }
+    }
+
+    @Module({
+      controllers: [CustomersController, CustomerAuthController, AmlController]
+    })
+    class AppModule {}
+
+    const app = await NestFactory.create(AppModule, { logger: false });
+    await app.init();
+
+    const config = new DocumentBuilder().setTitle('t').setVersion('1').build();
+    const document = SwaggerModule.createDocument(app, config);
+
+    const xTagGroups = document['x-tagGroups'];
+    expect(xTagGroups).toBeDefined();
+    expect(xTagGroups).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Customers',
+          tags: expect.arrayContaining(['Customers', 'Customer Authentication', 'AML'])
+        })
+      ])
+    );
+    const customersGroup = (xTagGroups || []).find((g) => g.name === 'Customers');
+    expect(customersGroup?.tags[0]).toBe('Customers');
 
     await app.close();
   });

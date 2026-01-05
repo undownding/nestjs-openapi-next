@@ -51,7 +51,21 @@ export class SwaggerModule {
 
       // Prefer explicit config values for standard fields, but allow scanned
       // decorators to fill gaps.
-      merged.summary = existing.summary ?? tag.summary;
+      const existingDisplayName = existing['x-displayName'];
+      const scannedDisplayName = tag['x-displayName'];
+      const normalizedDisplayName =
+        existingDisplayName ??
+        existing.summary ??
+        scannedDisplayName ??
+        tag.summary;
+      const normalizedSummary =
+        existing.summary ??
+        existingDisplayName ??
+        tag.summary ??
+        scannedDisplayName;
+
+      merged.summary = normalizedSummary;
+      merged['x-displayName'] = normalizedDisplayName;
       merged.description = existing.description ?? tag.description;
       merged.externalDocs = existing.externalDocs ?? tag.externalDocs;
 
@@ -64,6 +78,58 @@ export class SwaggerModule {
 
     const merged = [...byName.values()];
     return merged.length > 0 ? merged : undefined;
+  }
+
+  private static buildXTagGroups(tags?: TagObject[]) {
+    if (!tags || tags.length === 0) {
+      return undefined;
+    }
+
+    const groupToTags = new Map<string, string[]>();
+    const groupToSeen = new Map<string, Set<string>>();
+
+    for (const tag of tags) {
+      const parent = tag.parent;
+      if (!parent) {
+        continue;
+      }
+      if (!groupToTags.has(parent)) {
+        groupToTags.set(parent, []);
+        groupToSeen.set(parent, new Set());
+      }
+      const list = groupToTags.get(parent)!;
+      const seen = groupToSeen.get(parent)!;
+      if (!seen.has(tag.name)) {
+        seen.add(tag.name);
+        list.push(tag.name);
+      }
+    }
+
+    if (groupToTags.size === 0) {
+      return undefined;
+    }
+
+    const allTagNames = new Set(tags.map((t) => t.name));
+
+    return [...groupToTags.entries()].map(([name, childTags]) => {
+      const finalTags: string[] = [];
+      const seen = new Set<string>();
+
+      // If a tag with the same name exists, include it first (common Redoc pattern).
+      if (allTagNames.has(name)) {
+        seen.add(name);
+        finalTags.push(name);
+      }
+
+      for (const t of childTags) {
+        if (!seen.has(t)) {
+          seen.add(t);
+          finalTags.push(t);
+        }
+      }
+
+      return { name, tags: finalTags };
+    });
   }
 
   public static createDocument(
@@ -89,6 +155,15 @@ export class SwaggerModule {
       ...document,
       ...(mergedTags ? { tags: mergedTags } : {})
     };
+
+    // Auto-derive `x-tagGroups` from Enhanced Tags (`parent`) if not explicitly provided.
+    if (mergedDocument['x-tagGroups'] === undefined) {
+      const xTagGroups = SwaggerModule.buildXTagGroups(mergedDocument.tags);
+      if (xTagGroups) {
+        mergedDocument['x-tagGroups'] = xTagGroups;
+      }
+    }
+
     return mergedDocument;
   }
 

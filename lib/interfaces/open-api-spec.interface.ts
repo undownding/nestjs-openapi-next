@@ -11,6 +11,14 @@ export interface OpenAPIObject {
   components?: ComponentsObject;
   security?: SecurityRequirementObject[];
   tags?: TagObject[];
+  /**
+   * Non-standard grouping extension supported by tools like Redoc.
+   * @see https://redocly.com/docs/api-reference-docs/specification-extensions/x-tagGroups/
+   */
+  'x-tagGroups'?: Array<{
+    name: string;
+    tags: string[];
+  }>;
   externalDocs?: ExternalDocumentationObject;
 }
 
@@ -204,6 +212,11 @@ export interface TagObject {
    * OAS 3.2 adds a short display summary for tags.
    */
   summary?: string;
+  /**
+   * Non-standard display name extension used by some tooling (e.g. Redoc).
+   * Equivalent to `summary` in this fork (we mirror values when either is set).
+   */
+  'x-displayName'?: string;
   description?: string;
   externalDocs?: ExternalDocumentationObject;
   /**

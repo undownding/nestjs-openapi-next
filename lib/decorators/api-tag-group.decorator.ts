@@ -6,10 +6,17 @@ export type ApiTagGroupKind = 'audience' | 'badge' | 'nav' | (string & {});
 
 export interface ApiTagGroupOptions extends Pick<
   TagObject,
-  'name' | 'summary' | 'description' | 'externalDocs' | 'parent' | 'kind'
+  | 'name'
+  | 'summary'
+  | 'x-displayName'
+  | 'description'
+  | 'externalDocs'
+  | 'parent'
+  | 'kind'
 > {
   name: string;
   summary?: string;
+  'x-displayName'?: string;
   description?: string;
   externalDocs?: TagObject['externalDocs'];
   parent?: string;
