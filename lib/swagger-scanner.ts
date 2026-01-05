@@ -22,7 +22,7 @@ import { SwaggerExplorer } from './swagger-explorer';
 import { SwaggerTransformer } from './swagger-transformer';
 import { getGlobalPrefix } from './utils/get-global-prefix';
 import { stripLastSlash } from './utils/strip-last-slash.util';
-import { ApiTagGroupOptions } from './decorators/api-tag-group.decorator';
+import { ApiTagOptions } from './decorators/api-tag-group.decorator';
 import { TagObject } from './interfaces/open-api-spec.interface';
 
 export class SwaggerScanner {
@@ -186,16 +186,23 @@ export class SwaggerScanner {
         if (!metatype) {
           continue;
         }
-        const groups: ApiTagGroupOptions[] =
+        const groups: ApiTagOptions[] =
           Reflect.getMetadata(DECORATORS.API_TAG_GROUP, metatype) || [];
         for (const group of groups) {
           if (!group?.name) {
             continue;
           }
+          const normalizedSummary = group.summary ?? group['x-displayName'];
+          const normalizedDisplayName = group['x-displayName'] ?? group.summary;
           const previous = byName.get(group.name) || { name: group.name };
           byName.set(group.name, {
             ...previous,
-            ...(group.summary !== undefined ? { summary: group.summary } : {}),
+            ...(normalizedSummary !== undefined
+              ? { summary: normalizedSummary }
+              : {}),
+            ...(normalizedDisplayName !== undefined
+              ? { 'x-displayName': normalizedDisplayName }
+              : {}),
             ...(group.description !== undefined
               ? { description: group.description }
               : {}),

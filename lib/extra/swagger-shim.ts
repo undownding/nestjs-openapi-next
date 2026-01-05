@@ -217,6 +217,9 @@ export function ApiSecurityDeviceFlow() {
 export function ApiTags() {
   return () => {};
 }
+export function ApiTag() {
+  return () => {};
+}
 export function ApiTagGroup() {
   return () => {};
 }

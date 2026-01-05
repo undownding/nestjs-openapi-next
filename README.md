@@ -1,38 +1,33 @@
 # nestjs-openapi-next
 
-This repository is a fork of `@nestjs/swagger` (upstream: `nestjs/swagger`).
+`nestjs-openapi-next` is a fork of `@nestjs/swagger` (upstream: `nestjs/swagger`).
+The goal is to keep upstream behavior as compatible as possible while adding a set of **OpenAPI 3.2** features and widely-used **OpenAPI extension fields** (`x-`) that are commonly consumed by tools like Redoc.
 
-Its goal is to add first-class support for key **OpenAPI 3.2** features (see PR #1), while keeping compatibility with existing `@nestjs/swagger` usage as much as possible.
+> Note: this repository's `package.json` may still use the package name `@nestjs/swagger`. If your project also depends on the upstream package, use lockfiles / overrides / resolutions to avoid dependency conflicts.
 
-> Note: `package.json` currently still uses the package name `@nestjs/swagger`. If your project also depends on the upstream package, use lockfiles / overrides / resolutions to avoid dependency conflicts.
+## Key differences from upstream
 
-## What this fork adds (PR #1)
-
-- **HTTP `QUERY` method (OAS 3.2)**
-  - `@ApiQueryMethod()` to explicitly emit an OpenAPI `query` operation.
-- **Enhanced Tags (OAS 3.2)**
-  - `@ApiTagGroup()` to define tag metadata including `parent` and `kind`, merged into top-level `document.tags`.
-  - `DocumentBuilder.addTag()` supports an additional `summary` field.
-- **Streaming responses (OAS 3.2)**
-  - `@ApiStreamingResponse()` to emit per-item schema via `itemSchema` (e.g. SSE `text/event-stream`).
-- **OAuth 2.0 Device Authorization Flow (OAS 3.2 / RFC 8628)**
-  - OpenAPI typings include `flows.deviceAuthorization`.
-  - `@ApiSecurityDeviceFlow()` convenience decorator for security requirements.
+- **Richer OpenAPI 3.2 typings**
+  - e.g. `TagObject.summary`, `OAuthFlowsObject.deviceAuthorization`, etc.
+- **Enhanced tag support**
+  - `@ApiTag(options)` (class/controller-level): defines tag metadata (`summary`, `x-displayName`, `description`, `parent`, `kind`, ...) and merges it into the top-level `document.tags`.
+  - `x-displayName` support for tags, mirrored with `summary` (setting either results in both fields being written with the same value).
+  - Root-level `x-tagGroups` support (commonly used by Redoc). If you use `parent` to form relationships, `x-tagGroups` is auto-derived; you can also set it explicitly via `DocumentBuilder`.
+- **Additional OAS 3.2 behaviors**
+  - HTTP `QUERY` method via `@ApiQueryMethod()` (emits `paths['/x'].query`).
+  - Streaming responses via `@ApiStreamingResponse()` (`itemSchema`, e.g. SSE `text/event-stream`).
+  - OAuth2 Device Authorization Flow typing + `@ApiSecurityDeviceFlow()` helper.
+- **Convenience APIs**
+  - `DocumentBuilder.addServerWithName()` for a non-standard-but-common `server.name`.
 
 Test coverage: `test/openapi-3-2.spec.ts`.
 
 ## Compatibility
 
 - **NestJS**: peerDependencies target `@nestjs/common` / `@nestjs/core` `^11.0.1`
-- **Runtime deps**: generally aligned with `@nestjs/swagger` (e.g. `reflect-metadata`, optional `class-validator` / `class-transformer`, etc.)
+- **Runtime deps**: aligned with upstream `@nestjs/swagger` (`reflect-metadata`, optional `class-validator` / `class-transformer`, etc.)
 
 ## Installation
-
-### Install from this fork (recommended for OAS 3.2 extensions)
-
-```bash
-npm i --save github:undownding/nestjs-openapi-next
-```
 
 ### Install from npm
 
@@ -44,34 +39,101 @@ npm i --save nestjs-openapi-next
 
 See the official Nest OpenAPI tutorial: `https://docs.nestjs.com/openapi/introduction`
 
-Typical setup (minimal skeleton):
-
 ```ts
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-// ...
 const app = await NestFactory.create(AppModule);
 
 const config = new DocumentBuilder()
   .setTitle('Example')
   .setDescription('API description')
   .setVersion('1.0')
-  // If you want to declare OAS 3.2 in the document, set it explicitly:
+  // If you want the document to declare OAS 3.2, set it explicitly:
   .setOpenAPIVersion('3.2.0')
   .build();
 
 const document = SwaggerModule.createDocument(app, config);
 SwaggerModule.setup('api', app, document);
-
-await app.listen(3000);
 ```
 
-## OpenAPI 3.2 extensions
+## Usage
 
-### 1) HTTP QUERY method: `@ApiQueryMethod()`
+### 1) `@ApiTag(options)` (recommended) and deprecation of `@ApiTagGroup()`
 
-OAS 3.2 supports a `query` operation under `paths`. This decorator makes a Nest handler emit a `query` operation **in the generated OpenAPI document**.
+`@ApiTag(options)` is the primary decorator for defining tag metadata at the controller level.
+
+`@ApiTagGroup(options)` is kept as a backward-compatible alias, but is **deprecated** and may be removed in a future major version.
+
+```ts
+import { Controller, Get } from '@nestjs/common';
+import { ApiTag } from '@nestjs/swagger';
+
+@ApiTag({
+  name: 'Customers',
+  summary: 'Customers'
+  // you may also set: 'x-displayName': 'Customers'
+})
+@Controller('customers')
+export class CustomersController {
+  @Get()
+  list() {
+    return [];
+  }
+}
+```
+
+### 2) Tag `x-displayName` (mirrored with `summary`)
+
+This fork treats tag `summary` and `x-displayName` as equivalent display fields:
+
+- set either one;
+- the generated `document.tags` will contain **both** `summary` and `x-displayName` with the same value.
+
+### 3) Root-level `x-tagGroups` (tag grouping)
+
+#### Auto-derived (recommended)
+
+If you use tag `parent` relationships (via `@ApiTag()`), the root-level `x-tagGroups` will be derived automatically:
+
+```ts
+@ApiTag({ name: 'Customers' })
+@Controller('customers')
+export class CustomersController {}
+
+@ApiTag({ name: 'Customer Authentication', parent: 'Customers' })
+@Controller('auth')
+export class AuthController {}
+```
+
+Illustrative output:
+
+```yaml
+tags:
+  - name: Customers
+  - name: Customer Authentication
+x-tagGroups:
+  - name: Customers
+    tags:
+      - Customers
+      - Customer Authentication
+```
+
+#### Manual configuration
+
+You can also set `x-tagGroups` explicitly via `DocumentBuilder.addTagGroup()`:
+
+```ts
+const config = new DocumentBuilder()
+  .setTitle('t')
+  .setVersion('1')
+  .addTag('Customers')
+  .addTag('Customer Authentication')
+  .addTagGroup('Customers', ['Customers', 'Customer Authentication'])
+  .build();
+```
+
+### 4) HTTP `QUERY` method: `@ApiQueryMethod()`
 
 ```ts
 import { Controller, Post } from '@nestjs/common';
@@ -87,51 +149,7 @@ export class QueryController {
 }
 ```
 
-- Output: `document.paths['/search'].query` is defined (and `post` is not emitted for that handler).
-- Important: this does **not** change Nest routing at runtime — it only affects the generated OpenAPI document.
-
-### 2) Enhanced Tags: `@ApiTagGroup()`
-
-OAS 3.2 Enhanced Tags allow nesting and classification via `parent` and `kind`.
-
-```ts
-import { Controller, Get } from '@nestjs/common';
-import { ApiTagGroup } from '@nestjs/swagger';
-
-@ApiTagGroup({
-  name: 'Cats',
-  summary: 'Cats',
-  description: 'Cat operations',
-  parent: 'Admin',
-  kind: 'nav'
-})
-@Controller('cats')
-export class CatsController {
-  @Get()
-  list() {
-    return [];
-  }
-}
-```
-
-- `@ApiTagGroup()` also ensures operations are tagged (internally it behaves like applying `@ApiTags(name)`).
-- During scanning, tag group metadata is merged into top-level `document.tags` and then merged with tags coming from `DocumentBuilder`.
-
-#### `DocumentBuilder.addTag()` supports `summary`
-
-```ts
-new DocumentBuilder()
-  .addTag('Cats', 'Cat operations', undefined, 'Cats')
-  .build();
-```
-
-Signature (adds the 4th argument compared to upstream):
-
-- `addTag(name, description?, externalDocs?, summary?)`
-
-### 3) Streaming responses: `@ApiStreamingResponse()` (`itemSchema`)
-
-For streaming responses (e.g. SSE), OAS 3.2 supports describing each streamed item via `itemSchema` under the media type.
+### 5) Streaming responses: `@ApiStreamingResponse()` (`itemSchema`)
 
 ```ts
 import { Controller, Get } from '@nestjs/common';
@@ -156,13 +174,7 @@ export class EventsController {
 }
 ```
 
-Result (illustrative):
-
-- `responses['200'].content['text/event-stream'].itemSchema` -> `#/components/schemas/SseItemDto`
-
-### 4) OAuth2 Device Authorization Flow: `flows.deviceAuthorization` + `@ApiSecurityDeviceFlow()`
-
-Define the OAuth2 scheme (with `flows.deviceAuthorization`) via `DocumentBuilder.addOAuth2()`, then declare per-operation requirements with the decorator.
+### 6) OAuth2 Device Authorization Flow: `flows.deviceAuthorization` + `@ApiSecurityDeviceFlow()`
 
 ```ts
 import { Controller, Get } from '@nestjs/common';
@@ -195,37 +207,6 @@ const config = new DocumentBuilder()
   )
   .build();
 ```
-
-Notes:
-
-- `@ApiSecurityDeviceFlow()` is a convenience wrapper around `@ApiSecurity(name, scopes)` for requirements.
-- The device flow scheme definition still comes from `addOAuth2({ flows: { deviceAuthorization: ... } })`.
-
-### 5) Named servers: `DocumentBuilder.addServerWithName()`
-
-This fork extends the `ServerObject` typing with an optional `name?: string`, and provides a convenience builder method to populate it.
-
-```ts
-import { DocumentBuilder } from '@nestjs/swagger';
-
-const config = new DocumentBuilder()
-  .setTitle('t')
-  .setVersion('1')
-  .addServerWithName('prod', 'https://api.example.com', 'Production')
-  .addServerWithName('local', 'https://{host}', 'Local', {
-    host: { default: 'localhost' }
-  })
-  .build();
-```
-
-Signature:
-
-- `addServerWithName(name, url, description?, variables?)`
-
-## Upstream relationship / migration notes
-
-- The OAS 3.2 support in PR #1 is implemented as an additive extension to minimize breaking changes.
-- If you don’t use the new decorators/fields, behavior should be broadly compatible with upstream `@nestjs/swagger`.
 
 ## License
 

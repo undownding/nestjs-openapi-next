@@ -103,17 +103,28 @@ export class DocumentBuilder {
     externalDocs?: ExternalDocumentationObject,
     summary?: string
   ): this {
+    const normalizedSummary = summary;
     this.document.tags = this.document.tags.concat(
       pickBy(
         {
           name,
-          summary,
+          summary: normalizedSummary,
+          'x-displayName': normalizedSummary,
           description,
           externalDocs
         },
         negate(isUndefined)
       ) as TagObject
     );
+    return this;
+  }
+
+  /**
+   * Adds a non-standard `x-tagGroups` entry (commonly used by Redoc).
+   */
+  public addTagGroup(name: string, tags: string[]): this {
+    const existing = this.document['x-tagGroups'] || [];
+    this.document['x-tagGroups'] = existing.concat({ name, tags });
     return this;
   }
 
