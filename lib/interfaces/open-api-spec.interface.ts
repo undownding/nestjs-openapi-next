@@ -241,6 +241,16 @@ export type ExamplesObject = Record<string, ExampleObject | ReferenceObject>;
 
 export interface ReferenceObject {
   $ref: string;
+  /**
+   * OAS 3.1: A short summary which by default should override that of the referenced component.
+   * @see https://spec.openapis.org/oas/v3.1.0#reference-object
+   */
+  summary?: string;
+  /**
+   * OAS 3.1: A description which by default should override that of the referenced component.
+   * @see https://spec.openapis.org/oas/v3.1.0#reference-object
+   */
+  description?: string;
 }
 
 export interface SchemaObject {
