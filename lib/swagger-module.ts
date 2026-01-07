@@ -8,7 +8,23 @@ import {
   SwaggerCustomOptions,
   SwaggerDocumentOptions
 } from './interfaces';
-import { TagObject } from './interfaces/open-api-spec.interface';
+import {
+  CallbackObject,
+  CallbacksObject,
+  ContentObject,
+  HeaderObject,
+  HeadersObject,
+  MediaTypeObject,
+  OperationObject,
+  ParameterObject,
+  PathItemObject,
+  ReferenceObject,
+  RequestBodyObject,
+  ResponseObject,
+  ResponsesObject,
+  SchemaObject,
+  TagObject
+} from './interfaces/open-api-spec.interface';
 import { MetadataLoader } from './plugin/metadata-loader';
 import { SwaggerScanner } from './swagger-scanner';
 import {
@@ -22,6 +38,368 @@ import { normalizeRelPath } from './utils/normalize-rel-path';
 import { resolvePath } from './utils/resolve-path.util';
 import { validateGlobalPrefix } from './utils/validate-global-prefix.util';
 import { validatePath } from './utils/validate-path.util';
+
+const NULL_TYPE_SCHEMA: SchemaObject = { type: 'null' };
+
+function isReferenceObject(
+  value: ReferenceObject | Record<string, any>
+): value is ReferenceObject {
+  return !!(value as ReferenceObject)?.$ref;
+}
+
+function isOas31OrAbove(openapi?: string): boolean {
+  const [majorStr, minorStr] = (openapi || '').split('.');
+  const major = Number(majorStr);
+  const minor = Number(minorStr);
+  if (Number.isNaN(major) || Number.isNaN(minor)) {
+    return false;
+  }
+  return major > 3 || (major === 3 && minor >= 1);
+}
+
+function appendNullOption(
+  schemas: Array<SchemaObject | ReferenceObject>
+): Array<SchemaObject | ReferenceObject> {
+  const hasNull = schemas.some(
+    (item) =>
+      !isReferenceObject(item) &&
+      (item.type === 'null' ||
+        (Array.isArray(item.type) && item.type.includes('null')))
+  );
+  return hasNull ? schemas : schemas.concat(NULL_TYPE_SCHEMA);
+}
+
+function normalizeNullableSchema(
+  schema?: SchemaObject | ReferenceObject
+): SchemaObject | ReferenceObject | undefined {
+  if (!schema) {
+    return schema;
+  }
+  if (isReferenceObject(schema)) {
+    return schema;
+  }
+
+  const converted: SchemaObject = { ...schema };
+
+  if (converted.properties) {
+    converted.properties = Object.entries(converted.properties).reduce(
+      (acc, [key, value]) => {
+        acc[key] = normalizeNullableSchema(value) as SchemaObject | ReferenceObject;
+        return acc;
+      },
+      {} as Record<string, SchemaObject | ReferenceObject>
+    );
+  }
+
+  if (converted.patternProperties) {
+    converted.patternProperties = Object.entries(
+      converted.patternProperties
+    ).reduce((acc, [key, value]) => {
+      acc[key] = normalizeNullableSchema(value) as SchemaObject | ReferenceObject;
+      return acc;
+    }, {} as Record<string, SchemaObject | ReferenceObject>);
+  }
+
+  if (
+    converted.additionalProperties &&
+    typeof converted.additionalProperties === 'object'
+  ) {
+    converted.additionalProperties = normalizeNullableSchema(
+      converted.additionalProperties as SchemaObject | ReferenceObject
+    ) as SchemaObject | ReferenceObject;
+  }
+
+  if (converted.items) {
+    converted.items = normalizeNullableSchema(converted.items) as
+      | SchemaObject
+      | ReferenceObject;
+  }
+
+  if (converted.allOf) {
+    converted.allOf = converted.allOf.map(
+      (item) => normalizeNullableSchema(item) as SchemaObject | ReferenceObject
+    );
+  }
+  if (converted.oneOf) {
+    converted.oneOf = converted.oneOf.map(
+      (item) => normalizeNullableSchema(item) as SchemaObject | ReferenceObject
+    );
+  }
+  if (converted.anyOf) {
+    converted.anyOf = converted.anyOf.map(
+      (item) => normalizeNullableSchema(item) as SchemaObject | ReferenceObject
+    );
+  }
+  if (converted.not) {
+    converted.not = normalizeNullableSchema(converted.not) as SchemaObject;
+  }
+
+  const isNullable = converted.nullable === true;
+  if (converted.nullable !== undefined) {
+    delete converted.nullable;
+  }
+  if (!isNullable) {
+    return converted;
+  }
+
+  if (converted.type !== undefined) {
+    const types = Array.isArray(converted.type)
+      ? converted.type
+      : [converted.type];
+    converted.type = types.includes('null') ? types : [...types, 'null'];
+    return converted;
+  }
+
+  if (converted.oneOf) {
+    converted.oneOf = appendNullOption(converted.oneOf);
+    return converted;
+  }
+
+  if (converted.anyOf) {
+    converted.anyOf = appendNullOption(converted.anyOf);
+    return converted;
+  }
+
+  if (converted.allOf) {
+    return {
+      anyOf: appendNullOption([converted])
+    };
+  }
+
+  return {
+    anyOf: appendNullOption([converted])
+  };
+}
+
+function transformMediaType(mediaType: MediaTypeObject): MediaTypeObject {
+  const transformed: MediaTypeObject = { ...mediaType };
+  if (mediaType.schema) {
+    transformed.schema = normalizeNullableSchema(mediaType.schema) as
+      | SchemaObject
+      | ReferenceObject;
+  }
+  if (mediaType.itemSchema) {
+    transformed.itemSchema = normalizeNullableSchema(mediaType.itemSchema) as
+      | SchemaObject
+      | ReferenceObject;
+  }
+  return transformed;
+}
+
+function transformContent(content?: ContentObject): ContentObject | undefined {
+  if (!content) {
+    return content;
+  }
+  return Object.entries(content).reduce((acc, [key, value]) => {
+    acc[key] = transformMediaType(value);
+    return acc;
+  }, {} as ContentObject);
+}
+
+function transformParameter(
+  parameter: ParameterObject | ReferenceObject
+): ParameterObject | ReferenceObject {
+  if (isReferenceObject(parameter)) {
+    return parameter;
+  }
+  const transformed: ParameterObject = { ...parameter };
+  if (parameter.schema) {
+    transformed.schema = normalizeNullableSchema(parameter.schema) as
+      | SchemaObject
+      | ReferenceObject;
+  }
+  if (parameter.content) {
+    transformed.content = transformContent(parameter.content) || parameter.content;
+  }
+  return transformed;
+}
+
+function transformHeaders(
+  headers?: HeadersObject
+): HeadersObject | undefined {
+  if (!headers) {
+    return headers;
+  }
+  return Object.entries(headers).reduce((acc, [key, value]) => {
+    if (isReferenceObject(value as any)) {
+      acc[key] = value as ReferenceObject;
+      return acc;
+    }
+    const header = value as HeaderObject;
+    const transformed: HeaderObject = { ...header };
+    if (header.schema) {
+      transformed.schema = normalizeNullableSchema(header.schema) as
+        | SchemaObject
+        | ReferenceObject;
+    }
+    if (header.content) {
+      transformed.content = transformContent(header.content) || header.content;
+    }
+    acc[key] = transformed;
+    return acc;
+  }, {} as HeadersObject);
+}
+
+function transformRequestBody(
+  requestBody: RequestBodyObject | ReferenceObject
+): RequestBodyObject | ReferenceObject {
+  if (isReferenceObject(requestBody)) {
+    return requestBody;
+  }
+  const transformed: RequestBodyObject = { ...requestBody };
+  if (requestBody.content) {
+    transformed.content =
+      transformContent(requestBody.content) || requestBody.content;
+  }
+  return transformed;
+}
+
+function transformResponse(
+  response: ResponseObject | ReferenceObject
+): ResponseObject | ReferenceObject {
+  if (isReferenceObject(response)) {
+    return response;
+  }
+  const transformed: ResponseObject = { ...response };
+  if (response.content) {
+    transformed.content = transformContent(response.content) || response.content;
+  }
+  if (response.headers) {
+    transformed.headers = transformHeaders(response.headers) || response.headers;
+  }
+  return transformed;
+}
+
+function transformResponses(responses: ResponsesObject): ResponsesObject {
+  return Object.entries(responses).reduce((acc, [status, response]) => {
+    if (response === undefined) {
+      acc[status] = response;
+      return acc;
+    }
+    acc[status] = transformResponse(response);
+    return acc;
+  }, {} as ResponsesObject);
+}
+
+function transformCallbacks(callbacks: CallbacksObject): CallbacksObject {
+  return Object.entries(callbacks).reduce((acc, [name, callback]) => {
+    if (isReferenceObject(callback as any)) {
+      acc[name] = callback;
+      return acc;
+    }
+    const transformedCallback: CallbackObject = {};
+    Object.entries(callback as CallbackObject).forEach(([path, pathItem]) => {
+      transformedCallback[path] = transformPathItem(pathItem);
+    });
+    acc[name] = transformedCallback;
+    return acc;
+  }, {} as CallbacksObject);
+}
+
+function transformOperation(operation: OperationObject): OperationObject {
+  const transformed: OperationObject = { ...operation };
+  if (operation.parameters) {
+    transformed.parameters = operation.parameters.map(transformParameter);
+  }
+  if (operation.requestBody) {
+    transformed.requestBody = transformRequestBody(operation.requestBody);
+  }
+  if (operation.responses) {
+    transformed.responses = transformResponses(operation.responses);
+  }
+  if (operation.callbacks) {
+    transformed.callbacks = transformCallbacks(operation.callbacks);
+  }
+  return transformed;
+}
+
+function transformPathItem(pathItem: PathItemObject): PathItemObject {
+  const transformed: PathItemObject = { ...pathItem };
+  if (pathItem.parameters) {
+    transformed.parameters = pathItem.parameters.map(transformParameter);
+  }
+
+  const operationKeys: Array<keyof PathItemObject> = [
+    'get',
+    'put',
+    'post',
+    'delete',
+    'options',
+    'head',
+    'patch',
+    'trace',
+    'search',
+    'query'
+  ];
+
+  operationKeys.forEach((operationKey) => {
+    const operation = pathItem[operationKey];
+    if (operation) {
+      (transformed as any)[operationKey] = transformOperation(
+        operation as OperationObject
+      );
+    }
+  });
+
+  return transformed;
+}
+
+function transformPathItems(
+  paths?: Record<string, PathItemObject>
+): Record<string, PathItemObject> | undefined {
+  if (!paths) {
+    return paths;
+  }
+  return Object.entries(paths).reduce((acc, [path, pathItem]) => {
+    acc[path] = transformPathItem(pathItem);
+    return acc;
+  }, {} as Record<string, PathItemObject>);
+}
+
+function normalizeNullableForOas31(document: OpenAPIObject) {
+  if (document.components?.schemas) {
+    Object.entries(document.components.schemas).forEach(([name, schema]) => {
+      document.components!.schemas![name] = normalizeNullableSchema(
+        schema
+      ) as SchemaObject | ReferenceObject;
+    });
+  }
+
+  if (document.components?.parameters) {
+    Object.entries(document.components.parameters).forEach(([name, parameter]) => {
+      document.components!.parameters![name] = transformParameter(parameter);
+    });
+  }
+
+  if (document.components?.requestBodies) {
+    Object.entries(document.components.requestBodies).forEach(([name, body]) => {
+      document.components!.requestBodies![name] = transformRequestBody(body);
+    });
+  }
+
+  if (document.components?.responses) {
+    Object.entries(document.components.responses).forEach(([name, response]) => {
+      document.components!.responses![name] = transformResponse(response);
+    });
+  }
+
+  if (document.components?.headers) {
+    document.components.headers =
+      transformHeaders(document.components.headers) ||
+      document.components.headers;
+  }
+
+  if (document.components?.callbacks) {
+    document.components.callbacks = transformCallbacks(
+      document.components.callbacks
+    );
+  }
+
+  document.paths = transformPathItems(document.paths) || {};
+  if (document.webhooks) {
+    document.webhooks = transformPathItems(document.webhooks);
+  }
+}
 
 /**
  * @publicApi
@@ -179,6 +557,10 @@ export class SwaggerModule {
       ...(mergedTags ? { tags: mergedTags } : {}),
       ...(mergedWebhooks ? { webhooks: mergedWebhooks } : {})
     };
+
+    if (isOas31OrAbove(mergedDocument.openapi)) {
+      normalizeNullableForOas31(mergedDocument);
+    }
 
     // Auto-derive `x-tagGroups` from Enhanced Tags (`parent`) if not explicitly provided.
     if (mergedDocument['x-tagGroups'] === undefined) {

@@ -253,7 +253,7 @@ export interface SchemaObject {
   example?: any;
   examples?: any[] | Record<string, any>;
   deprecated?: boolean;
-  type?: string;
+  type?: string | string[];
   allOf?: (SchemaObject | ReferenceObject)[];
   oneOf?: (SchemaObject | ReferenceObject)[];
   anyOf?: (SchemaObject | ReferenceObject)[];
