@@ -11,6 +11,7 @@ import {
 } from '../lib/decorators';
 import { DocumentBuilder } from '../lib/document-builder';
 import { SwaggerModule } from '../lib/swagger-module';
+import { ReferenceObject } from '../lib/interfaces/open-api-spec.interface';
 
 describe('OpenAPI 3.2 extensions', () => {
   it('supports HTTP QUERY method via @ApiQueryMethod()', async () => {
@@ -264,10 +265,9 @@ describe('OpenAPI 3.2 extensions', () => {
 
   it('supports OAS 3.1 ReferenceObject summary/description override', () => {
     // This test validates that ReferenceObject interface accepts summary and description
-    const { ReferenceObject } = require('../lib/interfaces/open-api-spec.interface');
     
     // Type checking: ensure ReferenceObject can have summary and description
-    const refWithSummaryDesc: any = {
+    const refWithSummaryDesc: ReferenceObject = {
       $ref: '#/components/schemas/Pet',
       summary: 'Pet response',
       description: 'Override description for this context'
@@ -279,7 +279,7 @@ describe('OpenAPI 3.2 extensions', () => {
     expect(refWithSummaryDesc.description).toBe('Override description for this context');
     
     // Basic reference without override should also work
-    const basicRef: any = {
+    const basicRef: ReferenceObject = {
       $ref: '#/components/schemas/Pet'
     };
     
