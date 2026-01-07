@@ -327,10 +327,10 @@ export class SwaggerExplorer {
     );
 
     // OAS 3.1 Webhooks support: emit under `webhooks` instead of `paths`
-    const webhookMetadata = Reflect.getMetadata(DECORATORS.API_WEBHOOK, method) as
-      | string
-      | boolean
-      | undefined;
+    const webhookMetadata = Reflect.getMetadata(
+      DECORATORS.API_WEBHOOK,
+      method
+    ) as string | boolean | undefined;
     const isWebhook = Boolean(webhookMetadata);
 
     const requestMethodForPathFactory: RequestMethod =
@@ -423,7 +423,9 @@ export class SwaggerExplorer {
             ? {
                 isWebhook: true,
                 webhookName:
-                  typeof webhookMetadata === 'string' ? webhookMetadata : method.name
+                  typeof webhookMetadata === 'string'
+                    ? webhookMetadata
+                    : method.name
               }
             : {}),
           operationId: this.getOperationId(instance, methodKey, pathVersion),

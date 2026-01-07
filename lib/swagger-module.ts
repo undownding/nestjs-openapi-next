@@ -107,8 +107,17 @@ export class SwaggerModule {
         groupToTags.set(parent, []);
         groupToSeen.set(parent, new Set());
       }
-      const list = groupToTags.get(parent)!;
-      const seen = groupToSeen.get(parent)!;
+      let list = groupToTags.get(parent);
+      if (!list) {
+        list = [];
+        groupToTags.set(parent, list);
+      }
+
+      let seen = groupToSeen.get(parent);
+      if (!seen) {
+        seen = new Set();
+        groupToSeen.set(parent, seen);
+      }
       if (!seen.has(tag.name)) {
         seen.add(tag.name);
         list.push(tag.name);

@@ -8,8 +8,8 @@ export class SwaggerTransformer {
   ): Pick<OpenAPIObject, 'paths' | 'webhooks'> {
     const roots = filter(denormalizedDoc, (r) => r.root);
 
-    const webhookRoots = roots.filter(
-      ({ root }: Record<'root', any>) => Boolean(root?.isWebhook)
+    const webhookRoots = roots.filter(({ root }: Record<'root', any>) =>
+      Boolean(root?.isWebhook)
     );
     const pathRoots = roots.filter(
       ({ root }: Record<'root', any>) => !root?.isWebhook

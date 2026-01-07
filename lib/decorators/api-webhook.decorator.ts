@@ -20,4 +20,3 @@ import { createMethodDecorator } from './helpers';
 export function ApiWebhook(name?: string): MethodDecorator {
   return createMethodDecorator(DECORATORS.API_WEBHOOK, name ?? true);
 }
-
