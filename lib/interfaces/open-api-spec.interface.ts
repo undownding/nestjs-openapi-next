@@ -62,6 +62,7 @@ export interface LicenseObject {
 export interface ServerObject {
   name?: string;
   url: string;
+  pathPrefix?: string;
   description?: string;
   variables?: Record<string, ServerVariableObject>;
 }

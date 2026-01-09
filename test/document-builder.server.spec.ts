@@ -35,3 +35,18 @@ describe('DocumentBuilder.addServerWithName()', () => {
   });
 });
 
+describe('DocumentBuilder.addServer()', () => {
+  it('adds pathPrefix when provided', () => {
+    const config = new DocumentBuilder()
+      .addServer('https://api.example.com', 'Production', undefined, '/v1')
+      .build();
+
+    expect(config.servers?.[0]).toEqual(
+      expect.objectContaining({
+        url: 'https://api.example.com',
+        description: 'Production',
+        pathPrefix: '/v1'
+      })
+    );
+  });
+});
