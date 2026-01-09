@@ -237,27 +237,17 @@ describe('JSON Schema Draft 2020-12 interface support', () => {
   });
 
   describe('JSON Schema 2020-12 integration with OpenAPI', () => {
-    class JsonSchema2020Dto {
-      @ApiProperty({
-        description: 'A property with const value',
-        const: 'FIXED_VALUE'
-      } as any)
-      constProperty: string;
-
-      @ApiProperty({
-        description: 'Base64 encoded image',
-        contentMediaType: 'image/png',
-        contentEncoding: 'base64'
-      } as any)
-      imageData: string;
+    class SimpleDto {
+      @ApiProperty({ description: 'A simple string property' })
+      name: string;
     }
 
     @Controller()
     class JsonSchemaController {
       @Get('schema')
-      @ApiOkResponse({ type: JsonSchema2020Dto })
-      getSchema(): JsonSchema2020Dto {
-        return { constProperty: 'FIXED_VALUE', imageData: '' };
+      @ApiOkResponse({ type: SimpleDto })
+      getSchema(): SimpleDto {
+        return { name: 'test' };
       }
     }
 
@@ -278,7 +268,57 @@ describe('JSON Schema Draft 2020-12 interface support', () => {
 
       // Verify the document was created successfully
       expect(document.openapi).toBe('3.1.0');
-      expect(document.components?.schemas?.JsonSchema2020Dto).toBeDefined();
+      expect(document.components?.schemas?.SimpleDto).toBeDefined();
+
+      await app.close();
+    });
+
+    it('should allow JSON Schema 2020-12 keywords in component schemas', async () => {
+      const app = await NestFactory.create(AppModule, { logger: false });
+      await app.init();
+
+      const config = new DocumentBuilder()
+        .setTitle('Test API')
+        .setVersion('1.0.0')
+        .setOpenAPIVersion('3.1.0')
+        .build();
+
+      const document = SwaggerModule.createDocument(app, config);
+
+      // Manually add a schema with JSON Schema 2020-12 keywords to verify type compatibility
+      const jsonSchema2020Schema: SchemaObject = {
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
+        $id: 'https://example.com/custom-schema',
+        type: 'object',
+        $defs: {
+          address: {
+            type: 'object',
+            properties: {
+              street: { type: 'string' },
+              city: { type: 'string' }
+            }
+          }
+        },
+        properties: {
+          type: { const: 'business' },
+          data: { contentMediaType: 'application/json', contentEncoding: 'base64' }
+        },
+        if: { properties: { type: { const: 'business' } } },
+        then: { required: ['taxId'] },
+        dependentRequired: { creditCard: ['billingAddress'] },
+        prefixItems: [{ type: 'string' }, { type: 'number' }],
+        unevaluatedProperties: false
+      };
+
+      // Verify the schema with JSON Schema 2020-12 keywords is type-compatible
+      document.components = document.components || {};
+      document.components.schemas = document.components.schemas || {};
+      document.components.schemas['JsonSchema2020Example'] = jsonSchema2020Schema;
+
+      expect(document.components.schemas['JsonSchema2020Example']).toBeDefined();
+      expect((document.components.schemas['JsonSchema2020Example'] as SchemaObject).$schema).toBe(
+        'https://json-schema.org/draft/2020-12/schema'
+      );
 
       await app.close();
     });

@@ -296,7 +296,7 @@ export interface SchemaObject {
    */
   $anchor?: string;
   /**
-   * JSON Schema 2020-12: A non-empty array of valid JSON values that the instance must equal.
+   * JSON Schema 2020-12: Defines a single constant value that the instance must equal.
    * @see https://json-schema.org/understanding-json-schema/reference/const
    */
   const?: any;
