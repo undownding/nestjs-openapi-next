@@ -76,8 +76,8 @@ export class DocumentBuilder {
   public addServer(
     url: string,
     description?: string,
-    variables?: Record<string, ServerVariableObject>,
-    pathPrefix?: string
+    pathPrefix?: string,
+    variables?: Record<string, ServerVariableObject>
   ): this {
     this.document.servers.push({ url, description, variables, pathPrefix });
     return this;
@@ -87,8 +87,8 @@ export class DocumentBuilder {
     name: string,
     url: string,
     description?: string,
-    variables?: Record<string, ServerVariableObject>,
-    pathPrefix?: string
+    pathPrefix?: string,
+    variables?: Record<string, ServerVariableObject>
   ): this {
     this.document.servers.push({ name, url, description, variables, pathPrefix });
     return this;
