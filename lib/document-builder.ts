@@ -90,7 +90,13 @@ export class DocumentBuilder {
     pathPrefix?: string,
     variables?: Record<string, ServerVariableObject>
   ): this {
-    this.document.servers.push({ name, url, description, variables, pathPrefix });
+    this.document.servers.push({
+      name,
+      url,
+      description,
+      variables,
+      pathPrefix,
+    });
     return this;
   }
 
