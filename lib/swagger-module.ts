@@ -134,6 +134,34 @@ function normalizeNullableSchema(
     converted.not = normalizeNullableSchema(converted.not) as SchemaObject;
   }
 
+  /**
+   * OAS 3.1+ uses JSON Schema 2020-12 semantics where `exclusiveMinimum` and
+   * `exclusiveMaximum` are numeric boundary values (not boolean flags).
+   *
+   * We normalize common OAS 3.0 style inputs:
+   * - minimum + exclusiveMinimum: true  => exclusiveMinimum: minimum (and drop minimum)
+   * - maximum + exclusiveMaximum: true  => exclusiveMaximum: maximum (and drop maximum)
+   */
+  const exclusiveMinimum = converted.exclusiveMinimum;
+  if (typeof exclusiveMinimum === 'boolean') {
+    if (exclusiveMinimum === true && typeof converted.minimum === 'number') {
+      converted.exclusiveMinimum = converted.minimum;
+      delete converted.minimum;
+    } else {
+      delete converted.exclusiveMinimum;
+    }
+  }
+
+  const exclusiveMaximum = converted.exclusiveMaximum;
+  if (typeof exclusiveMaximum === 'boolean') {
+    if (exclusiveMaximum === true && typeof converted.maximum === 'number') {
+      converted.exclusiveMaximum = converted.maximum;
+      delete converted.maximum;
+    } else {
+      delete converted.exclusiveMaximum;
+    }
+  }
+
   const isNullable = converted.nullable === true;
   if (converted.nullable !== undefined) {
     delete converted.nullable;
