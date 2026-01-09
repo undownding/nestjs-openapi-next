@@ -94,7 +94,8 @@ function normalizeExclusiveBoundaries(schema: SchemaObject): SchemaObject {
 }
 
 function normalizeNullableSchema(
-  schema?: SchemaObject | ReferenceObject
+  schema?: SchemaObject | ReferenceObject,
+  convertExclusiveBounds = false
 ): SchemaObject | ReferenceObject | undefined {
   if (!schema) {
     return schema;
@@ -103,14 +104,17 @@ function normalizeNullableSchema(
     return schema;
   }
 
-  const converted: SchemaObject = normalizeExclusiveBoundaries({
-    ...schema
-  });
+  const converted: SchemaObject = convertExclusiveBounds
+    ? normalizeExclusiveBoundaries({ ...schema })
+    : { ...schema };
 
   if (converted.properties) {
     converted.properties = Object.entries(converted.properties).reduce(
       (acc, [key, value]) => {
-        acc[key] = normalizeNullableSchema(value) as SchemaObject | ReferenceObject;
+        acc[key] = normalizeNullableSchema(
+          value,
+          convertExclusiveBounds
+        ) as SchemaObject | ReferenceObject;
         return acc;
       },
       {} as Record<string, SchemaObject | ReferenceObject>
@@ -121,7 +125,10 @@ function normalizeNullableSchema(
     converted.patternProperties = Object.entries(
       converted.patternProperties
     ).reduce((acc, [key, value]) => {
-      acc[key] = normalizeNullableSchema(value) as SchemaObject | ReferenceObject;
+      acc[key] = normalizeNullableSchema(
+        value,
+        convertExclusiveBounds
+      ) as SchemaObject | ReferenceObject;
       return acc;
     }, {} as Record<string, SchemaObject | ReferenceObject>);
   }
@@ -131,33 +138,52 @@ function normalizeNullableSchema(
     typeof converted.additionalProperties === 'object'
   ) {
     converted.additionalProperties = normalizeNullableSchema(
-      converted.additionalProperties as SchemaObject | ReferenceObject
+      converted.additionalProperties as SchemaObject | ReferenceObject,
+      convertExclusiveBounds
     ) as SchemaObject | ReferenceObject;
   }
 
   if (converted.items) {
-    converted.items = normalizeNullableSchema(converted.items) as
+    converted.items = normalizeNullableSchema(
+      converted.items,
+      convertExclusiveBounds
+    ) as
       | SchemaObject
       | ReferenceObject;
   }
 
   if (converted.allOf) {
     converted.allOf = converted.allOf.map(
-      (item) => normalizeNullableSchema(item) as SchemaObject | ReferenceObject
+      (item) =>
+        normalizeNullableSchema(
+          item,
+          convertExclusiveBounds
+        ) as SchemaObject | ReferenceObject
     );
   }
   if (converted.oneOf) {
     converted.oneOf = converted.oneOf.map(
-      (item) => normalizeNullableSchema(item) as SchemaObject | ReferenceObject
+      (item) =>
+        normalizeNullableSchema(
+          item,
+          convertExclusiveBounds
+        ) as SchemaObject | ReferenceObject
     );
   }
   if (converted.anyOf) {
     converted.anyOf = converted.anyOf.map(
-      (item) => normalizeNullableSchema(item) as SchemaObject | ReferenceObject
+      (item) =>
+        normalizeNullableSchema(
+          item,
+          convertExclusiveBounds
+        ) as SchemaObject | ReferenceObject
     );
   }
   if (converted.not) {
-    converted.not = normalizeNullableSchema(converted.not) as SchemaObject;
+    converted.not = normalizeNullableSchema(
+      converted.not,
+      convertExclusiveBounds
+    ) as SchemaObject;
   }
 
   const isNullable = converted.nullable === true;
@@ -200,12 +226,12 @@ function normalizeNullableSchema(
 function transformMediaType(mediaType: MediaTypeObject): MediaTypeObject {
   const transformed: MediaTypeObject = { ...mediaType };
   if (mediaType.schema) {
-    transformed.schema = normalizeNullableSchema(mediaType.schema) as
+    transformed.schema = normalizeNullableSchema(mediaType.schema, true) as
       | SchemaObject
       | ReferenceObject;
   }
   if (mediaType.itemSchema) {
-    transformed.itemSchema = normalizeNullableSchema(mediaType.itemSchema) as
+    transformed.itemSchema = normalizeNullableSchema(mediaType.itemSchema, true) as
       | SchemaObject
       | ReferenceObject;
   }
@@ -230,7 +256,7 @@ function transformParameter(
   }
   const transformed: ParameterObject = { ...parameter };
   if (parameter.schema) {
-    transformed.schema = normalizeNullableSchema(parameter.schema) as
+    transformed.schema = normalizeNullableSchema(parameter.schema, true) as
       | SchemaObject
       | ReferenceObject;
   }
@@ -254,7 +280,7 @@ function transformHeaders(
     const header = value as HeaderObject;
     const transformed: HeaderObject = { ...header };
     if (header.schema) {
-      transformed.schema = normalizeNullableSchema(header.schema) as
+      transformed.schema = normalizeNullableSchema(header.schema, true) as
         | SchemaObject
         | ReferenceObject;
     }
@@ -386,7 +412,8 @@ function normalizeNullableForOas31(document: OpenAPIObject) {
   if (document.components?.schemas) {
     Object.entries(document.components.schemas).forEach(([name, schema]) => {
       document.components!.schemas![name] = normalizeNullableSchema(
-        schema
+        schema,
+        true
       ) as SchemaObject | ReferenceObject;
     });
   }
