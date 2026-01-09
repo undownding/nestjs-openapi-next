@@ -280,9 +280,9 @@ export interface SchemaObject {
   title?: string;
   multipleOf?: number;
   maximum?: number;
-  exclusiveMaximum?: boolean;
+  exclusiveMaximum?: number | boolean;
   minimum?: number;
-  exclusiveMinimum?: boolean;
+  exclusiveMinimum?: number | boolean;
   maxLength?: number;
   minLength?: number;
   pattern?: string;

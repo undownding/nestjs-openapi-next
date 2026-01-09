@@ -69,6 +69,30 @@ function appendNullOption(
   return hasNull ? schemas : schemas.concat(NULL_TYPE_SCHEMA);
 }
 
+function normalizeExclusiveBoundaries(schema: SchemaObject): SchemaObject {
+  const converted = { ...schema };
+
+  if (typeof converted.exclusiveMinimum === 'boolean') {
+    if (converted.exclusiveMinimum && typeof converted.minimum === 'number') {
+      converted.exclusiveMinimum = converted.minimum;
+      delete converted.minimum;
+    } else {
+      delete converted.exclusiveMinimum;
+    }
+  }
+
+  if (typeof converted.exclusiveMaximum === 'boolean') {
+    if (converted.exclusiveMaximum && typeof converted.maximum === 'number') {
+      converted.exclusiveMaximum = converted.maximum;
+      delete converted.maximum;
+    } else {
+      delete converted.exclusiveMaximum;
+    }
+  }
+
+  return converted;
+}
+
 function normalizeNullableSchema(
   schema?: SchemaObject | ReferenceObject
 ): SchemaObject | ReferenceObject | undefined {
@@ -79,7 +103,9 @@ function normalizeNullableSchema(
     return schema;
   }
 
-  const converted: SchemaObject = { ...schema };
+  const converted: SchemaObject = normalizeExclusiveBoundaries({
+    ...schema
+  });
 
   if (converted.properties) {
     converted.properties = Object.entries(converted.properties).reduce(

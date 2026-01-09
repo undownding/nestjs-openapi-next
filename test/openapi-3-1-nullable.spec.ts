@@ -9,6 +9,14 @@ describe('OpenAPI 3.1 nullable handling', () => {
   class NullableDto {
     @ApiProperty({ nullable: true })
     value: string;
+
+    @ApiProperty({
+      minimum: 1,
+      exclusiveMinimum: true,
+      maximum: 10,
+      exclusiveMaximum: true
+    })
+    exclusive: number;
   }
 
   @Controller()
@@ -16,7 +24,7 @@ describe('OpenAPI 3.1 nullable handling', () => {
     @Get('nullable')
     @ApiOkResponse({ type: NullableDto })
     getNullable(): NullableDto {
-      return { value: 'test' };
+      return { value: 'test', exclusive: 5 };
     }
   }
 
@@ -36,11 +44,16 @@ describe('OpenAPI 3.1 nullable handling', () => {
     const document = SwaggerModule.createDocument(app, config);
     const nullableSchema: any = document.components.schemas.NullableDto as any;
     const propertySchema: any = nullableSchema.properties.value;
+    const exclusiveSchema: any = nullableSchema.properties.exclusive;
 
     expect(propertySchema.nullable).toBeUndefined();
     expect(propertySchema.type).toEqual(
       expect.arrayContaining(['string', 'null'])
     );
+    expect(exclusiveSchema.minimum).toBeUndefined();
+    expect(exclusiveSchema.maximum).toBeUndefined();
+    expect(exclusiveSchema.exclusiveMinimum).toBe(1);
+    expect(exclusiveSchema.exclusiveMaximum).toBe(10);
 
     await app.close();
   });
@@ -58,9 +71,14 @@ describe('OpenAPI 3.1 nullable handling', () => {
     const document = SwaggerModule.createDocument(app, config);
     const nullableSchema: any = document.components.schemas.NullableDto as any;
     const propertySchema: any = nullableSchema.properties.value;
+    const exclusiveSchema: any = nullableSchema.properties.exclusive;
 
     expect(propertySchema.nullable).toBe(true);
     expect(propertySchema.type).toBe('string');
+    expect(exclusiveSchema.exclusiveMinimum).toBe(true);
+    expect(exclusiveSchema.exclusiveMaximum).toBe(true);
+    expect(exclusiveSchema.minimum).toBe(1);
+    expect(exclusiveSchema.maximum).toBe(10);
 
     await app.close();
   });
