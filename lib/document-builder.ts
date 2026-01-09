@@ -95,7 +95,7 @@ export class DocumentBuilder {
       url,
       description,
       variables,
-      pathPrefix,
+      pathPrefix
     });
     return this;
   }
