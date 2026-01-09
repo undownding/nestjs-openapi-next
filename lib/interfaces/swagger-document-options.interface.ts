@@ -9,6 +9,15 @@ export type OperationIdFactory = (
  */
 export interface SwaggerDocumentOptions {
   /**
+   * Internal: OpenAPI version used to shape document output.
+   * - OAS 3.1+: emit `webhooks` at the document root.
+   * - OAS 3.0: emit webhook-marked operations as normal `paths`.
+   *
+   * This is automatically wired from `SwaggerModule.createDocument()` based on
+   * the provided `config.openapi`.
+   */
+  openapiVersion?: string;
+  /**
    * List of modules to include in the specification
    */
   include?: Function[];

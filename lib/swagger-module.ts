@@ -8,6 +8,7 @@ import {
   SwaggerCustomOptions,
   SwaggerDocumentOptions
 } from './interfaces';
+import { isOas31OrAbove } from './utils/is-oas31-or-above';
 import {
   CallbackObject,
   CallbacksObject,
@@ -45,16 +46,6 @@ function isReferenceObject(
   value: ReferenceObject | Record<string, any>
 ): value is ReferenceObject {
   return !!(value as ReferenceObject)?.$ref;
-}
-
-function isOas31OrAbove(openapi?: string): boolean {
-  const [majorStr, minorStr] = (openapi || '').split('.');
-  const major = Number(majorStr);
-  const minor = Number(minorStr);
-  if (Number.isNaN(major) || Number.isNaN(minor)) {
-    return false;
-  }
-  return major > 3 || (major === 3 && minor >= 1);
 }
 
 function appendNullOption(
@@ -535,7 +526,10 @@ export class SwaggerModule {
     options: SwaggerDocumentOptions = {}
   ): OpenAPIObject {
     const swaggerScanner = new SwaggerScanner();
-    const document = swaggerScanner.scanApplication(app, options);
+    const document = swaggerScanner.scanApplication(app, {
+      ...options,
+      openapiVersion: config.openapi
+    });
 
     document.components = assignTwoLevelsDeep(
       {},
@@ -544,10 +538,10 @@ export class SwaggerModule {
     );
 
     const mergedTags = SwaggerModule.mergeTags(config.tags, document.tags);
-    const mergedWebhooks = SwaggerModule.mergeWebhooks(
-      (config as any).webhooks,
-      (document as any).webhooks
-    );
+    const shouldEmitWebhooks = isOas31OrAbove(config.openapi);
+    const mergedWebhooks = shouldEmitWebhooks
+      ? SwaggerModule.mergeWebhooks((config as any).webhooks, (document as any).webhooks)
+      : undefined;
 
     const mergedDocument: OpenAPIObject = {
       openapi: '3.0.0',

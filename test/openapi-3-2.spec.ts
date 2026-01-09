@@ -253,12 +253,24 @@ describe('OpenAPI 3.2 extensions', () => {
     const app = await NestFactory.create(AppModule, { logger: false });
     await app.init();
 
-    const config = new DocumentBuilder().setTitle('t').setVersion('1').build();
-    const document = SwaggerModule.createDocument(app, config);
+    const configOas30 = new DocumentBuilder()
+      .setTitle('t')
+      .setVersion('1')
+      .setOpenAPIVersion('3.0.0')
+      .build();
+    const documentOas30 = SwaggerModule.createDocument(app, configOas30);
+    expect(documentOas30.webhooks).toBeUndefined();
+    expect(documentOas30.paths['/stripe']).toBeDefined();
 
-    expect(document.webhooks?.stripeEvent).toBeDefined();
-    expect(document.webhooks?.stripeEvent.post).toBeDefined();
-    expect(document.paths['/stripe']).toBeUndefined();
+    const configOas31 = new DocumentBuilder()
+      .setTitle('t')
+      .setVersion('1')
+      .setOpenAPIVersion('3.1.0')
+      .build();
+    const documentOas31 = SwaggerModule.createDocument(app, configOas31);
+    expect(documentOas31.webhooks?.stripeEvent).toBeDefined();
+    expect(documentOas31.webhooks?.stripeEvent.post).toBeDefined();
+    expect(documentOas31.paths['/stripe']).toBeUndefined();
 
     await app.close();
   });

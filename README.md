@@ -225,6 +225,12 @@ export class StripeWebhooksController {
     return { ok: true };
   }
 }
+
+const config = new DocumentBuilder()
+  .setTitle('t')
+  .setVersion('1')
+  .setOpenAPIVersion('3.1.0')
+  .build();
 ```
 
 The generated document will contain `document.webhooks.stripeEvent.post`, and the

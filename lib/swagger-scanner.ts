@@ -44,7 +44,8 @@ export class SwaggerScanner {
       ignoreGlobalPrefix = false,
       operationIdFactory,
       linkNameFactory,
-      autoTagControllers = true
+      autoTagControllers = true,
+      openapiVersion
     } = options;
 
     const untypedApp = app as any;
@@ -106,7 +107,9 @@ export class SwaggerScanner {
     this.addExtraModels(schemas, extraModels);
 
     return {
-      ...this.transformer.normalizePaths(flatten(denormalizedPaths)),
+      ...this.transformer.normalizePaths(flatten(denormalizedPaths), {
+        openapiVersion
+      }),
       ...(tagGroups.length > 0 ? { tags: tagGroups } : {}),
       components: {
         schemas: schemas as Record<string, SchemaObject | ReferenceObject>

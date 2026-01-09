@@ -1,19 +1,23 @@
 import { filter, groupBy, keyBy, mapValues, omit } from 'lodash';
 import { OpenAPIObject } from './interfaces';
+import { isOas31OrAbove } from './utils/is-oas31-or-above';
 import { sortObjectLexicographically } from './utils/sort-object-lexicographically';
 
 export class SwaggerTransformer {
   public normalizePaths(
-    denormalizedDoc: (Partial<OpenAPIObject> & Record<'root', any>)[]
+    denormalizedDoc: (Partial<OpenAPIObject> & Record<'root', any>)[],
+    options?: { openapiVersion?: string }
   ): Pick<OpenAPIObject, 'paths' | 'webhooks'> {
     const roots = filter(denormalizedDoc, (r) => r.root);
 
-    const webhookRoots = roots.filter(({ root }: Record<'root', any>) =>
-      Boolean(root?.isWebhook)
-    );
-    const pathRoots = roots.filter(
-      ({ root }: Record<'root', any>) => !root?.isWebhook
-    );
+    const emitWebhooks = isOas31OrAbove(options?.openapiVersion);
+    const webhookRoots = emitWebhooks
+      ? roots.filter(({ root }: Record<'root', any>) => Boolean(root?.isWebhook))
+      : [];
+    const pathRoots = emitWebhooks
+      ? roots.filter(({ root }: Record<'root', any>) => !root?.isWebhook)
+      : // OAS 3.0: webhooks is not a top-level field; emit as normal paths
+        roots;
 
     const groupedByPath = groupBy(
       pathRoots,
