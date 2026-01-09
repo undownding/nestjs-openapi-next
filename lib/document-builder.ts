@@ -52,6 +52,16 @@ export class DocumentBuilder {
     return this;
   }
 
+  /**
+   * Sets license information using an SPDX license identifier.
+   * The identifier field is mutually exclusive with the url field.
+   * @see https://spec.openapis.org/oas/v3.1.0#license-object
+   */
+  public setLicenseWithIdentifier(name: string, identifier: string): this {
+    this.document.info.license = { name, identifier };
+    return this;
+  }
+
   public setOpenAPIVersion(version: string): this {
     if (version.match(/^\d\.\d\.\d$/)) {
       this.document.openapi = version;
