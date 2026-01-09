@@ -47,6 +47,11 @@ export interface ContactObject {
 export interface LicenseObject {
   name: string;
   url?: string;
+  /**
+   * OAS 3.1: SPDX license identifier for the API.
+   * @see https://spec.openapis.org/oas/v3.1.0#license-object
+   */
+  identifier?: string;
 }
 
 export interface ServerObject {

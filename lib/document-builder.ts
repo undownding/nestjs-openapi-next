@@ -6,6 +6,7 @@ import { OpenAPIObject } from './interfaces';
 import {
   ExtensionLocation,
   ExternalDocumentationObject,
+  LicenseObject,
   ParameterObject,
   SecurityRequirementObject,
   SecuritySchemeObject,
@@ -47,8 +48,11 @@ export class DocumentBuilder {
     return this;
   }
 
-  public setLicense(name: string, url: string): this {
-    this.document.info.license = { name, url };
+  public setLicense(name: string, url?: string, identifier?: string): this {
+    this.document.info.license = pickBy(
+      { name, url, identifier },
+      negate(isUndefined)
+    ) as LicenseObject;
     return this;
   }
 
