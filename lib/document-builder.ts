@@ -42,6 +42,11 @@ export class DocumentBuilder {
     return this;
   }
 
+  public setInfoTags(tags: string[]): this {
+    this.document.info.tags = tags;
+    return this;
+  }
+
   public setContact(name: string, url: string, email: string): this {
     this.document.info.contact = { name, url, email };
     return this;

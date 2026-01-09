@@ -39,6 +39,43 @@ describe('OpenAPI 3.2 extensions', () => {
     await app.close();
   });
 
+  it('supports InfoObject.tags for document-level tags (compatible with @ApiTag)', async () => {
+    @ApiTag({
+      name: 'Cats'
+    })
+    @Controller('cats')
+    class CatsController {
+      @Get()
+      list() {
+        return [];
+      }
+    }
+
+    @Module({ controllers: [CatsController] })
+    class AppModule {}
+
+    const app = await NestFactory.create(AppModule, { logger: false });
+    await app.init();
+
+    const config = new DocumentBuilder()
+      .setTitle('t')
+      .setVersion('1')
+      .setOpenAPIVersion('3.2.0')
+      .setInfoTags(['production', 'stable'])
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+
+    expect(document.info.tags).toEqual(['production', 'stable']);
+    expect(document.tags).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'Cats' })])
+    );
+    expect(document.paths['/cats'].get.tags).toEqual(
+      expect.arrayContaining(['Cats'])
+    );
+
+    await app.close();
+  });
+
   it('supports Enhanced Tags (parent/kind) via @ApiTag()', async () => {
     @ApiTag({
       name: 'Cats',
