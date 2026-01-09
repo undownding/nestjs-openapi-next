@@ -223,51 +223,70 @@ function normalizeNullableSchema(
   };
 }
 
-function transformMediaType(mediaType: MediaTypeObject): MediaTypeObject {
+function transformMediaType(
+  mediaType: MediaTypeObject,
+  convertExclusiveBounds = false
+): MediaTypeObject {
   const transformed: MediaTypeObject = { ...mediaType };
   if (mediaType.schema) {
-    transformed.schema = normalizeNullableSchema(mediaType.schema, true) as
+    transformed.schema = normalizeNullableSchema(
+      mediaType.schema,
+      convertExclusiveBounds
+    ) as
       | SchemaObject
       | ReferenceObject;
   }
   if (mediaType.itemSchema) {
-    transformed.itemSchema = normalizeNullableSchema(mediaType.itemSchema, true) as
+    transformed.itemSchema = normalizeNullableSchema(
+      mediaType.itemSchema,
+      convertExclusiveBounds
+    ) as
       | SchemaObject
       | ReferenceObject;
   }
   return transformed;
 }
 
-function transformContent(content?: ContentObject): ContentObject | undefined {
+function transformContent(
+  content?: ContentObject,
+  convertExclusiveBounds = false
+): ContentObject | undefined {
   if (!content) {
     return content;
   }
   return Object.entries(content).reduce((acc, [key, value]) => {
-    acc[key] = transformMediaType(value);
+    acc[key] = transformMediaType(value, convertExclusiveBounds);
     return acc;
   }, {} as ContentObject);
 }
 
 function transformParameter(
-  parameter: ParameterObject | ReferenceObject
+  parameter: ParameterObject | ReferenceObject,
+  convertExclusiveBounds = false
 ): ParameterObject | ReferenceObject {
   if (isReferenceObject(parameter)) {
     return parameter;
   }
   const transformed: ParameterObject = { ...parameter };
   if (parameter.schema) {
-    transformed.schema = normalizeNullableSchema(parameter.schema, true) as
+    transformed.schema = normalizeNullableSchema(
+      parameter.schema,
+      convertExclusiveBounds
+    ) as
       | SchemaObject
       | ReferenceObject;
   }
   if (parameter.content) {
-    transformed.content = transformContent(parameter.content) || parameter.content;
+    transformed.content =
+      transformContent(parameter.content, convertExclusiveBounds) ||
+      parameter.content;
   }
   return transformed;
 }
 
 function transformHeaders(
-  headers?: HeadersObject
+  headers?: HeadersObject,
+  convertExclusiveBounds = false
 ): HeadersObject | undefined {
   if (!headers) {
     return headers;
@@ -280,12 +299,17 @@ function transformHeaders(
     const header = value as HeaderObject;
     const transformed: HeaderObject = { ...header };
     if (header.schema) {
-      transformed.schema = normalizeNullableSchema(header.schema, true) as
+      transformed.schema = normalizeNullableSchema(
+        header.schema,
+        convertExclusiveBounds
+      ) as
         | SchemaObject
         | ReferenceObject;
     }
     if (header.content) {
-      transformed.content = transformContent(header.content) || header.content;
+      transformed.content =
+        transformContent(header.content, convertExclusiveBounds) ||
+        header.content;
     }
     acc[key] = transformed;
     return acc;
@@ -293,7 +317,8 @@ function transformHeaders(
 }
 
 function transformRequestBody(
-  requestBody: RequestBodyObject | ReferenceObject
+  requestBody: RequestBodyObject | ReferenceObject,
+  convertExclusiveBounds = false
 ): RequestBodyObject | ReferenceObject {
   if (isReferenceObject(requestBody)) {
     return requestBody;
@@ -301,39 +326,51 @@ function transformRequestBody(
   const transformed: RequestBodyObject = { ...requestBody };
   if (requestBody.content) {
     transformed.content =
-      transformContent(requestBody.content) || requestBody.content;
+      transformContent(requestBody.content, convertExclusiveBounds) ||
+      requestBody.content;
   }
   return transformed;
 }
 
 function transformResponse(
-  response: ResponseObject | ReferenceObject
+  response: ResponseObject | ReferenceObject,
+  convertExclusiveBounds = false
 ): ResponseObject | ReferenceObject {
   if (isReferenceObject(response)) {
     return response;
   }
   const transformed: ResponseObject = { ...response };
   if (response.content) {
-    transformed.content = transformContent(response.content) || response.content;
+    transformed.content =
+      transformContent(response.content, convertExclusiveBounds) ||
+      response.content;
   }
   if (response.headers) {
-    transformed.headers = transformHeaders(response.headers) || response.headers;
+    transformed.headers =
+      transformHeaders(response.headers, convertExclusiveBounds) ||
+      response.headers;
   }
   return transformed;
 }
 
-function transformResponses(responses: ResponsesObject): ResponsesObject {
+function transformResponses(
+  responses: ResponsesObject,
+  convertExclusiveBounds = false
+): ResponsesObject {
   return Object.entries(responses).reduce((acc, [status, response]) => {
     if (response === undefined) {
       acc[status] = response;
       return acc;
     }
-    acc[status] = transformResponse(response);
+    acc[status] = transformResponse(response, convertExclusiveBounds);
     return acc;
   }, {} as ResponsesObject);
 }
 
-function transformCallbacks(callbacks: CallbacksObject): CallbacksObject {
+function transformCallbacks(
+  callbacks: CallbacksObject,
+  convertExclusiveBounds = false
+): CallbacksObject {
   return Object.entries(callbacks).reduce((acc, [name, callback]) => {
     if (isReferenceObject(callback as any)) {
       acc[name] = callback;
@@ -341,34 +378,56 @@ function transformCallbacks(callbacks: CallbacksObject): CallbacksObject {
     }
     const transformedCallback: CallbackObject = {};
     Object.entries(callback as CallbackObject).forEach(([path, pathItem]) => {
-      transformedCallback[path] = transformPathItem(pathItem);
+      transformedCallback[path] = transformPathItem(
+        pathItem,
+        convertExclusiveBounds
+      );
     });
     acc[name] = transformedCallback;
     return acc;
   }, {} as CallbacksObject);
 }
 
-function transformOperation(operation: OperationObject): OperationObject {
+function transformOperation(
+  operation: OperationObject,
+  convertExclusiveBounds = false
+): OperationObject {
   const transformed: OperationObject = { ...operation };
   if (operation.parameters) {
-    transformed.parameters = operation.parameters.map(transformParameter);
+    transformed.parameters = operation.parameters.map((p) =>
+      transformParameter(p, convertExclusiveBounds)
+    );
   }
   if (operation.requestBody) {
-    transformed.requestBody = transformRequestBody(operation.requestBody);
+    transformed.requestBody = transformRequestBody(
+      operation.requestBody,
+      convertExclusiveBounds
+    );
   }
   if (operation.responses) {
-    transformed.responses = transformResponses(operation.responses);
+    transformed.responses = transformResponses(
+      operation.responses,
+      convertExclusiveBounds
+    );
   }
   if (operation.callbacks) {
-    transformed.callbacks = transformCallbacks(operation.callbacks);
+    transformed.callbacks = transformCallbacks(
+      operation.callbacks,
+      convertExclusiveBounds
+    );
   }
   return transformed;
 }
 
-function transformPathItem(pathItem: PathItemObject): PathItemObject {
+function transformPathItem(
+  pathItem: PathItemObject,
+  convertExclusiveBounds = false
+): PathItemObject {
   const transformed: PathItemObject = { ...pathItem };
   if (pathItem.parameters) {
-    transformed.parameters = pathItem.parameters.map(transformParameter);
+    transformed.parameters = pathItem.parameters.map((p) =>
+      transformParameter(p, convertExclusiveBounds)
+    );
   }
 
   const operationKeys: Array<keyof PathItemObject> = [
@@ -388,7 +447,8 @@ function transformPathItem(pathItem: PathItemObject): PathItemObject {
     const operation = pathItem[operationKey];
     if (operation) {
       (transformed as any)[operationKey] = transformOperation(
-        operation as OperationObject
+        operation as OperationObject,
+        convertExclusiveBounds
       );
     }
   });
@@ -397,61 +457,83 @@ function transformPathItem(pathItem: PathItemObject): PathItemObject {
 }
 
 function transformPathItems(
-  paths?: Record<string, PathItemObject>
+  paths?: Record<string, PathItemObject>,
+  convertExclusiveBounds = false
 ): Record<string, PathItemObject> | undefined {
   if (!paths) {
     return paths;
   }
   return Object.entries(paths).reduce((acc, [path, pathItem]) => {
-    acc[path] = transformPathItem(pathItem);
+    acc[path] = transformPathItem(pathItem, convertExclusiveBounds);
     return acc;
   }, {} as Record<string, PathItemObject>);
 }
 
-function normalizeNullableForOas31(document: OpenAPIObject) {
+function normalizeNullableForOas31(
+  document: OpenAPIObject,
+  convertExclusiveBounds = false
+) {
   if (document.components?.schemas) {
     Object.entries(document.components.schemas).forEach(([name, schema]) => {
       document.components!.schemas![name] = normalizeNullableSchema(
         schema,
-        true
+        convertExclusiveBounds
       ) as SchemaObject | ReferenceObject;
     });
   }
 
   if (document.components?.parameters) {
     Object.entries(document.components.parameters).forEach(([name, parameter]) => {
-      document.components!.parameters![name] = transformParameter(parameter);
+      document.components!.parameters![name] = transformParameter(
+        parameter,
+        convertExclusiveBounds
+      );
     });
   }
 
   if (document.components?.requestBodies) {
     Object.entries(document.components.requestBodies).forEach(([name, body]) => {
-      document.components!.requestBodies![name] = transformRequestBody(body);
+      document.components!.requestBodies![name] = transformRequestBody(
+        body,
+        convertExclusiveBounds
+      );
     });
   }
 
   if (document.components?.responses) {
     Object.entries(document.components.responses).forEach(([name, response]) => {
-      document.components!.responses![name] = transformResponse(response);
+      document.components!.responses![name] = transformResponse(
+        response,
+        convertExclusiveBounds
+      );
     });
   }
 
   if (document.components?.headers) {
     document.components.headers =
-      transformHeaders(document.components.headers) ||
+      transformHeaders(document.components.headers, convertExclusiveBounds) ||
       document.components.headers;
   }
 
   if (document.components?.callbacks) {
     document.components.callbacks = transformCallbacks(
-      document.components.callbacks
+      document.components.callbacks,
+      convertExclusiveBounds
     );
   }
 
-  document.paths = transformPathItems(document.paths) || {};
+  document.paths =
+    transformPathItems(document.paths, convertExclusiveBounds) || {};
   if (document.webhooks) {
-    document.webhooks = transformPathItems(document.webhooks);
+    document.webhooks = transformPathItems(
+      document.webhooks,
+      convertExclusiveBounds
+    );
   }
+}
+
+function normalizeExclusiveBoundariesForOas31(document: OpenAPIObject) {
+  normalizeNullableForOas31(document, true);
 }
 
 /**
@@ -613,6 +695,7 @@ export class SwaggerModule {
 
     if (isOas31OrAbove(mergedDocument.openapi)) {
       normalizeNullableForOas31(mergedDocument);
+      normalizeExclusiveBoundariesForOas31(mergedDocument);
     }
 
     // Auto-derive `x-tagGroups` from Enhanced Tags (`parent`) if not explicitly provided.
