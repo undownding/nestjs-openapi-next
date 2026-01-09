@@ -280,9 +280,17 @@ export interface SchemaObject {
   title?: string;
   multipleOf?: number;
   maximum?: number;
-  exclusiveMaximum?: boolean;
+  /**
+   * OAS 3.0 (JSON Schema draft-04): boolean flag paired with `maximum`.
+   * OAS 3.1+ (JSON Schema 2020-12): number boundary value.
+   */
+  exclusiveMaximum?: boolean | number;
   minimum?: number;
-  exclusiveMinimum?: boolean;
+  /**
+   * OAS 3.0 (JSON Schema draft-04): boolean flag paired with `minimum`.
+   * OAS 3.1+ (JSON Schema 2020-12): number boundary value.
+   */
+  exclusiveMinimum?: boolean | number;
   maxLength?: number;
   minLength?: number;
   pattern?: string;
