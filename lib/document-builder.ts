@@ -6,7 +6,6 @@ import { OpenAPIObject } from './interfaces';
 import {
   ExtensionLocation,
   ExternalDocumentationObject,
-  LicenseObject,
   ParameterObject,
   SecurityRequirementObject,
   SecuritySchemeObject,
@@ -48,11 +47,18 @@ export class DocumentBuilder {
     return this;
   }
 
-  public setLicense(name: string, url?: string, identifier?: string): this {
-    this.document.info.license = pickBy(
-      { name, url, identifier },
-      negate(isUndefined)
-    ) as LicenseObject;
+  public setLicense(name: string, url: string): this {
+    this.document.info.license = { name, url };
+    return this;
+  }
+
+  /**
+   * Sets license information using an SPDX license identifier.
+   * The identifier field is mutually exclusive with the url field.
+   * @see https://spec.openapis.org/oas/v3.1.0#license-object
+   */
+  public setLicenseWithIdentifier(name: string, identifier: string): this {
+    this.document.info.license = { name, identifier };
     return this;
   }
 

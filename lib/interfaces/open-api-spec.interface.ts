@@ -46,9 +46,14 @@ export interface ContactObject {
 
 export interface LicenseObject {
   name: string;
+  /**
+   * A URI for the license used for the API. This MUST be in the form of a URI.
+   * The url field is mutually exclusive of the identifier field.
+   */
   url?: string;
   /**
-   * OAS 3.1: SPDX license identifier for the API.
+   * OAS 3.1: An SPDX license expression for the API.
+   * The identifier field is mutually exclusive of the url field.
    * @see https://spec.openapis.org/oas/v3.1.0#license-object
    */
   identifier?: string;
