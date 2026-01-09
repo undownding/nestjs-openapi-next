@@ -264,6 +264,128 @@ export interface ReferenceObject {
 }
 
 export interface SchemaObject {
+  /**
+   * JSON Schema 2020-12: Declares which version of JSON Schema the schema conforms to.
+   * @see https://json-schema.org/understanding-json-schema/reference/schema#schema
+   */
+  $schema?: string;
+  /**
+   * JSON Schema 2020-12: A URI-reference that identifies this schema.
+   * @see https://json-schema.org/understanding-json-schema/structuring#id
+   */
+  $id?: string;
+  /**
+   * JSON Schema 2020-12: A location for schema authors to inline re-usable JSON Schemas.
+   * Replaces the deprecated `definitions` keyword.
+   * @see https://json-schema.org/understanding-json-schema/structuring#defs
+   */
+  $defs?: Record<string, SchemaObject | ReferenceObject>;
+  /**
+   * JSON Schema 2020-12: Enables dynamic referencing via `$dynamicRef`.
+   * @see https://json-schema.org/understanding-json-schema/structuring#dynamicanchor-and-dynamicref
+   */
+  $dynamicAnchor?: string;
+  /**
+   * JSON Schema 2020-12: A dynamic reference to a schema with `$dynamicAnchor`.
+   * @see https://json-schema.org/understanding-json-schema/structuring#dynamicanchor-and-dynamicref
+   */
+  $dynamicRef?: string;
+  /**
+   * JSON Schema 2020-12: A plain-name fragment identifier for use with JSON Pointer.
+   * @see https://json-schema.org/understanding-json-schema/structuring#anchor
+   */
+  $anchor?: string;
+  /**
+   * JSON Schema 2020-12: A non-empty array of valid JSON values that the instance must equal.
+   * @see https://json-schema.org/understanding-json-schema/reference/const
+   */
+  const?: any;
+  /**
+   * JSON Schema 2020-12: Specifies the media type of the string contents.
+   * @see https://json-schema.org/understanding-json-schema/reference/non_json_data#contentmediatype
+   */
+  contentMediaType?: string;
+  /**
+   * JSON Schema 2020-12: Specifies the encoding used to store the contents (e.g., "base64").
+   * @see https://json-schema.org/understanding-json-schema/reference/non_json_data#contentencoding
+   */
+  contentEncoding?: string;
+  /**
+   * JSON Schema 2020-12: Specifies a schema to validate the decoded string content.
+   * @see https://json-schema.org/understanding-json-schema/reference/non_json_data#contentschema
+   */
+  contentSchema?: SchemaObject | ReferenceObject;
+  /**
+   * JSON Schema 2020-12: Conditionally applies a subschema. If the `if` schema validates,
+   * the `then` schema is applied; otherwise `else` is applied.
+   * @see https://json-schema.org/understanding-json-schema/reference/conditionals#if-then-else
+   */
+  if?: SchemaObject | ReferenceObject;
+  /**
+   * JSON Schema 2020-12: The schema to apply if `if` validates successfully.
+   * @see https://json-schema.org/understanding-json-schema/reference/conditionals#if-then-else
+   */
+  then?: SchemaObject | ReferenceObject;
+  /**
+   * JSON Schema 2020-12: The schema to apply if `if` fails validation.
+   * @see https://json-schema.org/understanding-json-schema/reference/conditionals#if-then-else
+   */
+  else?: SchemaObject | ReferenceObject;
+  /**
+   * JSON Schema 2020-12: If a property is present, additional properties must validate
+   * against the specified schema.
+   * @see https://json-schema.org/understanding-json-schema/reference/conditionals#dependentschemas
+   */
+  dependentSchemas?: Record<string, SchemaObject | ReferenceObject>;
+  /**
+   * JSON Schema 2020-12: If a property is present, specified additional properties are required.
+   * @see https://json-schema.org/understanding-json-schema/reference/conditionals#dependentrequired
+   */
+  dependentRequired?: Record<string, string[]>;
+  /**
+   * JSON Schema 2020-12: An array of schemas for tuple validation. Each item in the array
+   * must validate against the schema at the same position.
+   * Replaces the array form of `items` from draft-04.
+   * @see https://json-schema.org/understanding-json-schema/reference/array#tupleValidation
+   */
+  prefixItems?: (SchemaObject | ReferenceObject)[];
+  /**
+   * JSON Schema 2020-12: Applies to any properties not covered by `properties`,
+   * `patternProperties`, or `additionalProperties` in this schema or any subschema.
+   * @see https://json-schema.org/understanding-json-schema/reference/object#unevaluatedproperties
+   */
+  unevaluatedProperties?: SchemaObject | ReferenceObject | boolean;
+  /**
+   * JSON Schema 2020-12: Applies to any items not evaluated by `items`, `prefixItems`,
+   * or `contains` in this schema or any subschema.
+   * @see https://json-schema.org/understanding-json-schema/reference/array#unevaluateditems
+   */
+  unevaluatedItems?: SchemaObject | ReferenceObject | boolean;
+  /**
+   * JSON Schema 2020-12: Validates that at least one item in an array matches the schema.
+   * @see https://json-schema.org/understanding-json-schema/reference/array#contains
+   */
+  contains?: SchemaObject | ReferenceObject;
+  /**
+   * JSON Schema 2020-12: Minimum number of items that must match the `contains` schema.
+   * @see https://json-schema.org/understanding-json-schema/reference/array#mincontains-maxcontains
+   */
+  minContains?: number;
+  /**
+   * JSON Schema 2020-12: Maximum number of items that must match the `contains` schema.
+   * @see https://json-schema.org/understanding-json-schema/reference/array#mincontains-maxcontains
+   */
+  maxContains?: number;
+  /**
+   * JSON Schema 2020-12: A comment for schema authors. Not used for validation.
+   * @see https://json-schema.org/understanding-json-schema/reference/comments
+   */
+  $comment?: string;
+  /**
+   * JSON Schema 2020-12: Specifies property names must validate against this schema.
+   * @see https://json-schema.org/understanding-json-schema/reference/object#propertyNames
+   */
+  propertyNames?: SchemaObject | ReferenceObject;
   nullable?: boolean;
   discriminator?: DiscriminatorObject;
   readOnly?: boolean;
@@ -278,7 +400,11 @@ export interface SchemaObject {
   oneOf?: (SchemaObject | ReferenceObject)[];
   anyOf?: (SchemaObject | ReferenceObject)[];
   not?: SchemaObject | ReferenceObject;
-  items?: SchemaObject | ReferenceObject;
+  /**
+   * Schema for array items. In JSON Schema 2020-12 (OAS 3.1+), when used with `prefixItems`,
+   * `items` can be `false` to disallow additional items beyond the tuple definition.
+   */
+  items?: SchemaObject | ReferenceObject | boolean;
   properties?: Record<string, SchemaObject | ReferenceObject>;
   additionalProperties?: SchemaObject | ReferenceObject | boolean;
   patternProperties?:

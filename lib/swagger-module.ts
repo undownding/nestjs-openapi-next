@@ -112,7 +112,7 @@ function normalizeNullableSchema(
     );
   }
 
-  if (converted.items) {
+  if (converted.items && typeof converted.items !== 'boolean') {
     converted.items = normalizeNullableSchema(converted.items);
   }
 
