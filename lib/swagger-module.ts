@@ -84,7 +84,7 @@ function normalizeNullableSchema(
   if (converted.properties) {
     converted.properties = Object.entries(converted.properties).reduce(
       (acc, [key, value]) => {
-        acc[key] = normalizeNullableSchema(value) as SchemaObject | ReferenceObject;
+        acc[key] = normalizeNullableSchema(value);
         return acc;
       },
       {} as Record<string, SchemaObject | ReferenceObject>
@@ -94,10 +94,13 @@ function normalizeNullableSchema(
   if (converted.patternProperties) {
     converted.patternProperties = Object.entries(
       converted.patternProperties
-    ).reduce((acc, [key, value]) => {
-      acc[key] = normalizeNullableSchema(value) as SchemaObject | ReferenceObject;
-      return acc;
-    }, {} as Record<string, SchemaObject | ReferenceObject>);
+    ).reduce(
+      (acc, [key, value]) => {
+        acc[key] = normalizeNullableSchema(value);
+        return acc;
+      },
+      {} as Record<string, SchemaObject | ReferenceObject>
+    );
   }
 
   if (
@@ -105,29 +108,27 @@ function normalizeNullableSchema(
     typeof converted.additionalProperties === 'object'
   ) {
     converted.additionalProperties = normalizeNullableSchema(
-      converted.additionalProperties as SchemaObject | ReferenceObject
-    ) as SchemaObject | ReferenceObject;
+      converted.additionalProperties
+    );
   }
 
   if (converted.items) {
-    converted.items = normalizeNullableSchema(converted.items) as
-      | SchemaObject
-      | ReferenceObject;
+    converted.items = normalizeNullableSchema(converted.items);
   }
 
   if (converted.allOf) {
-    converted.allOf = converted.allOf.map(
-      (item) => normalizeNullableSchema(item) as SchemaObject | ReferenceObject
+    converted.allOf = converted.allOf.map((item) =>
+      normalizeNullableSchema(item)
     );
   }
   if (converted.oneOf) {
-    converted.oneOf = converted.oneOf.map(
-      (item) => normalizeNullableSchema(item) as SchemaObject | ReferenceObject
+    converted.oneOf = converted.oneOf.map((item) =>
+      normalizeNullableSchema(item)
     );
   }
   if (converted.anyOf) {
-    converted.anyOf = converted.anyOf.map(
-      (item) => normalizeNullableSchema(item) as SchemaObject | ReferenceObject
+    converted.anyOf = converted.anyOf.map((item) =>
+      normalizeNullableSchema(item)
     );
   }
   if (converted.not) {
@@ -202,14 +203,10 @@ function normalizeNullableSchema(
 function transformMediaType(mediaType: MediaTypeObject): MediaTypeObject {
   const transformed: MediaTypeObject = { ...mediaType };
   if (mediaType.schema) {
-    transformed.schema = normalizeNullableSchema(mediaType.schema) as
-      | SchemaObject
-      | ReferenceObject;
+    transformed.schema = normalizeNullableSchema(mediaType.schema);
   }
   if (mediaType.itemSchema) {
-    transformed.itemSchema = normalizeNullableSchema(mediaType.itemSchema) as
-      | SchemaObject
-      | ReferenceObject;
+    transformed.itemSchema = normalizeNullableSchema(mediaType.itemSchema);
   }
   return transformed;
 }
@@ -232,19 +229,16 @@ function transformParameter(
   }
   const transformed: ParameterObject = { ...parameter };
   if (parameter.schema) {
-    transformed.schema = normalizeNullableSchema(parameter.schema) as
-      | SchemaObject
-      | ReferenceObject;
+    transformed.schema = normalizeNullableSchema(parameter.schema);
   }
   if (parameter.content) {
-    transformed.content = transformContent(parameter.content) || parameter.content;
+    transformed.content =
+      transformContent(parameter.content) || parameter.content;
   }
   return transformed;
 }
 
-function transformHeaders(
-  headers?: HeadersObject
-): HeadersObject | undefined {
+function transformHeaders(headers?: HeadersObject): HeadersObject | undefined {
   if (!headers) {
     return headers;
   }
@@ -256,9 +250,7 @@ function transformHeaders(
     const header = value as HeaderObject;
     const transformed: HeaderObject = { ...header };
     if (header.schema) {
-      transformed.schema = normalizeNullableSchema(header.schema) as
-        | SchemaObject
-        | ReferenceObject;
+      transformed.schema = normalizeNullableSchema(header.schema);
     }
     if (header.content) {
       transformed.content = transformContent(header.content) || header.content;
@@ -290,10 +282,12 @@ function transformResponse(
   }
   const transformed: ResponseObject = { ...response };
   if (response.content) {
-    transformed.content = transformContent(response.content) || response.content;
+    transformed.content =
+      transformContent(response.content) || response.content;
   }
   if (response.headers) {
-    transformed.headers = transformHeaders(response.headers) || response.headers;
+    transformed.headers =
+      transformHeaders(response.headers) || response.headers;
   }
   return transformed;
 }
@@ -378,37 +372,44 @@ function transformPathItems(
   if (!paths) {
     return paths;
   }
-  return Object.entries(paths).reduce((acc, [path, pathItem]) => {
-    acc[path] = transformPathItem(pathItem);
-    return acc;
-  }, {} as Record<string, PathItemObject>);
+  return Object.entries(paths).reduce(
+    (acc, [path, pathItem]) => {
+      acc[path] = transformPathItem(pathItem);
+      return acc;
+    },
+    {} as Record<string, PathItemObject>
+  );
 }
 
 function normalizeNullableForOas31(document: OpenAPIObject) {
   if (document.components?.schemas) {
     Object.entries(document.components.schemas).forEach(([name, schema]) => {
-      document.components!.schemas![name] = normalizeNullableSchema(
-        schema
-      ) as SchemaObject | ReferenceObject;
+      document.components.schemas[name] = normalizeNullableSchema(schema);
     });
   }
 
   if (document.components?.parameters) {
-    Object.entries(document.components.parameters).forEach(([name, parameter]) => {
-      document.components!.parameters![name] = transformParameter(parameter);
-    });
+    Object.entries(document.components.parameters).forEach(
+      ([name, parameter]) => {
+        document.components.parameters[name] = transformParameter(parameter);
+      }
+    );
   }
 
   if (document.components?.requestBodies) {
-    Object.entries(document.components.requestBodies).forEach(([name, body]) => {
-      document.components!.requestBodies![name] = transformRequestBody(body);
-    });
+    Object.entries(document.components.requestBodies).forEach(
+      ([name, body]) => {
+        document.components.requestBodies[name] = transformRequestBody(body);
+      }
+    );
   }
 
   if (document.components?.responses) {
-    Object.entries(document.components.responses).forEach(([name, response]) => {
-      document.components!.responses![name] = transformResponse(response);
-    });
+    Object.entries(document.components.responses).forEach(
+      ([name, response]) => {
+        document.components.responses[name] = transformResponse(response);
+      }
+    );
   }
 
   if (document.components?.headers) {
