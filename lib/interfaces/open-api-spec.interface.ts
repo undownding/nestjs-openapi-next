@@ -36,6 +36,10 @@ export interface InfoObject {
   contact?: ContactObject;
   license?: LicenseObject;
   version: string;
+  /**
+   * OAS 3.2 document-level tags.
+   */
+  tags?: string[];
 }
 
 export interface ContactObject {
