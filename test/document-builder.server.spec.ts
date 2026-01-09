@@ -17,7 +17,7 @@ describe('DocumentBuilder.addServerWithName()', () => {
 
   it('adds server variables when provided', () => {
     const config = new DocumentBuilder()
-      .addServerWithName('local', 'https://{host}', 'Local', {
+      .addServerWithName('local', 'https://{host}', 'Local', undefined, {
         host: { default: 'localhost' }
       })
       .build();
@@ -35,3 +35,18 @@ describe('DocumentBuilder.addServerWithName()', () => {
   });
 });
 
+describe('DocumentBuilder.addServer()', () => {
+  it('adds pathPrefix when provided', () => {
+    const config = new DocumentBuilder()
+      .addServer('https://api.example.com', 'Production', '/v1')
+      .build();
+
+    expect(config.servers?.[0]).toEqual(
+      expect.objectContaining({
+        url: 'https://api.example.com',
+        description: 'Production',
+        pathPrefix: '/v1'
+      })
+    );
+  });
+});
