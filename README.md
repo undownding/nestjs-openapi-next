@@ -100,7 +100,7 @@ This fork treats tag `summary` and `x-displayName` as equivalent display fields:
 
 #### Auto-derived (recommended)
 
-If you use tag `parent` relationships (via `@ApiTag()`), the root-level `x-tagGroups` will be derived automatically:
+If you use tag `parent` relationships (via `@ApiTag()`), the root-level `x-tagGroups` will be derived automatically (both in the scanned output and in the final document), so downstream generators (e.g. `.tags`) can render grouped tags correctly:
 
 ```ts
 @ApiTag({ name: 'Customers' })
