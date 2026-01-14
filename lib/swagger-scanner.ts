@@ -25,6 +25,7 @@ import { stripLastSlash } from './utils/strip-last-slash.util';
 import { ApiTagOptions } from './decorators/api-tag-group.decorator';
 import { TagObject } from './interfaces/open-api-spec.interface';
 import { buildXTagGroups } from './utils/build-x-tag-groups.util';
+import { collectOperationTagNames } from './utils/collect-operation-tag-names.util';
 
 export class SwaggerScanner {
   private readonly transformer = new SwaggerTransformer();
@@ -63,7 +64,6 @@ export class SwaggerScanner {
       : '';
 
     const tagGroups = this.exploreTagGroups(modules);
-    const xTagGroups = buildXTagGroups(tagGroups);
     const denormalizedPaths = modules.map(
       ({ controllers, metatype, imports }) => {
         let result: ModuleRoute[] = [];
@@ -107,8 +107,15 @@ export class SwaggerScanner {
     const schemas = this.explorer.getSchemas();
     this.addExtraModels(schemas, extraModels);
 
+    const normalized = this.transformer.normalizePaths(flatten(denormalizedPaths));
+    const operationTagNames = collectOperationTagNames(
+      normalized.paths,
+      (normalized as any).webhooks
+    );
+    const xTagGroups = buildXTagGroups(tagGroups, operationTagNames);
+
     return {
-      ...this.transformer.normalizePaths(flatten(denormalizedPaths)),
+      ...normalized,
       ...(tagGroups.length > 0 ? { tags: tagGroups } : {}),
       ...(xTagGroups ? { 'x-tagGroups': xTagGroups } : {}),
       components: {

@@ -39,6 +39,7 @@ import { resolvePath } from './utils/resolve-path.util';
 import { validateGlobalPrefix } from './utils/validate-global-prefix.util';
 import { validatePath } from './utils/validate-path.util';
 import { buildXTagGroups } from './utils/build-x-tag-groups.util';
+import { collectOperationTagNames } from './utils/collect-operation-tag-names.util';
 
 const NULL_TYPE_SCHEMA: SchemaObject = { type: 'null' };
 
@@ -437,61 +438,11 @@ function normalizeNullableForOas31(document: OpenAPIObject) {
 export class SwaggerModule {
   private static readonly metadataLoader = new MetadataLoader();
 
-  private static readonly HTTP_METHODS = new Set([
-    'get',
-    'put',
-    'post',
-    'delete',
-    'options',
-    'head',
-    'patch',
-    'trace'
-  ]);
-
   private static collectOperationTagNames(
     paths?: OpenAPIObject['paths'],
     webhooks?: OpenAPIObject['webhooks']
   ): string[] {
-    const names: string[] = [];
-    const seen = new Set<string>();
-
-    const collectFromItems = (
-      items?: OpenAPIObject['paths'] | OpenAPIObject['webhooks']
-    ) => {
-      if (!items) {
-        return;
-      }
-      for (const pathItem of Object.values(items)) {
-        if (!pathItem || typeof pathItem !== 'object') {
-          continue;
-        }
-        for (const [key, operation] of Object.entries(pathItem as any)) {
-          if (!SwaggerModule.HTTP_METHODS.has(String(key).toLowerCase())) {
-            continue;
-          }
-          const tags = (operation as any)?.tags;
-          if (!Array.isArray(tags)) {
-            continue;
-          }
-          for (const t of tags) {
-            if (typeof t !== 'string') {
-              continue;
-            }
-            const trimmed = t.trim();
-            if (!trimmed || seen.has(trimmed)) {
-              continue;
-            }
-            seen.add(trimmed);
-            names.push(trimmed);
-          }
-        }
-      }
-    };
-
-    collectFromItems(paths);
-    collectFromItems(webhooks);
-
-    return names;
+    return collectOperationTagNames(paths, webhooks);
   }
 
   private static mergeWebhooks(
@@ -569,8 +520,8 @@ export class SwaggerModule {
     return merged.length > 0 ? merged : undefined;
   }
 
-  private static buildXTagGroups(tags?: TagObject[]) {
-    return buildXTagGroups(tags);
+  private static buildXTagGroups(tags?: TagObject[], operationTagNames?: string[]) {
+    return buildXTagGroups(tags, operationTagNames);
   }
 
   public static createDocument(
@@ -616,7 +567,10 @@ export class SwaggerModule {
 
     // Auto-derive `x-tagGroups` from Enhanced Tags (`parent`) if not explicitly provided.
     if (mergedDocument['x-tagGroups'] === undefined) {
-      const xTagGroups = SwaggerModule.buildXTagGroups(mergedDocument.tags);
+      const xTagGroups = SwaggerModule.buildXTagGroups(
+        mergedDocument.tags,
+        operationTagNames
+      );
       if (xTagGroups) {
         mergedDocument['x-tagGroups'] = xTagGroups;
       }

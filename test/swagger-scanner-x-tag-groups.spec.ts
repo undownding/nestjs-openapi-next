@@ -73,5 +73,40 @@ describe('SwaggerScanner', () => {
 
     await app.close();
   });
+
+  it('includes a standalone x-tagGroups entry for tags without parent but used by operations', async () => {
+    @ApiTag({
+      name: 'Cats',
+      summary: 'Cats'
+    })
+    @Controller('cats')
+    class CatsController {
+      @Get()
+      list() {
+        return [];
+      }
+    }
+
+    @Module({ controllers: [CatsController] })
+    class AppModule {}
+
+    const app = await NestFactory.create(AppModule, { logger: false });
+    await app.init();
+
+    const scanner = new SwaggerScanner();
+    const scanned = scanner.scanApplication(app, {} as any);
+
+    const xTagGroups = (scanned as any)['x-tagGroups'];
+    expect(xTagGroups).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Cats',
+          tags: ['Cats']
+        })
+      ])
+    );
+
+    await app.close();
+  });
 });
 
