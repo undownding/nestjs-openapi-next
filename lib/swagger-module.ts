@@ -436,6 +436,63 @@ function normalizeNullableForOas31(document: OpenAPIObject) {
 export class SwaggerModule {
   private static readonly metadataLoader = new MetadataLoader();
 
+  private static readonly HTTP_METHODS = new Set([
+    'get',
+    'put',
+    'post',
+    'delete',
+    'options',
+    'head',
+    'patch',
+    'trace'
+  ]);
+
+  private static collectOperationTagNames(
+    paths?: OpenAPIObject['paths'],
+    webhooks?: OpenAPIObject['webhooks']
+  ): string[] {
+    const names: string[] = [];
+    const seen = new Set<string>();
+
+    const collectFromItems = (
+      items?: OpenAPIObject['paths'] | OpenAPIObject['webhooks']
+    ) => {
+      if (!items) {
+        return;
+      }
+      for (const pathItem of Object.values(items)) {
+        if (!pathItem || typeof pathItem !== 'object') {
+          continue;
+        }
+        for (const [key, operation] of Object.entries(pathItem as any)) {
+          if (!SwaggerModule.HTTP_METHODS.has(String(key).toLowerCase())) {
+            continue;
+          }
+          const tags = (operation as any)?.tags;
+          if (!Array.isArray(tags)) {
+            continue;
+          }
+          for (const t of tags) {
+            if (typeof t !== 'string') {
+              continue;
+            }
+            const trimmed = t.trim();
+            if (!trimmed || seen.has(trimmed)) {
+              continue;
+            }
+            seen.add(trimmed);
+            names.push(trimmed);
+          }
+        }
+      }
+    };
+
+    collectFromItems(paths);
+    collectFromItems(webhooks);
+
+    return names;
+  }
+
   private static mergeWebhooks(
     configWebhooks?: OpenAPIObject['webhooks'],
     scannedWebhooks?: OpenAPIObject['webhooks']
@@ -448,7 +505,8 @@ export class SwaggerModule {
 
   private static mergeTags(
     configTags?: TagObject[],
-    scannedTags?: TagObject[]
+    scannedTags?: TagObject[],
+    operationTagNames?: string[]
   ): TagObject[] | undefined {
     const byName = new Map<string, TagObject>();
 
@@ -491,6 +549,19 @@ export class SwaggerModule {
       merged.kind = existing.kind ?? tag.kind;
 
       byName.set(tag.name, merged);
+    }
+
+    // If explicit document tags exist (via config or decorators), ensure any tags
+    // referenced by operations are also present in the top-level tags array.
+    // This preserves tooling behavior that relies on `document.tags` for tag
+    // discovery/ordering when tags are explicitly provided.
+    if (byName.size > 0) {
+      for (const name of operationTagNames || []) {
+        if (!name || byName.has(name)) {
+          continue;
+        }
+        byName.set(name, { name });
+      }
     }
 
     const merged = [...byName.values()];
@@ -572,7 +643,15 @@ export class SwaggerModule {
       document.components
     );
 
-    const mergedTags = SwaggerModule.mergeTags(config.tags, document.tags);
+    const operationTagNames = SwaggerModule.collectOperationTagNames(
+      document.paths,
+      (document as any).webhooks
+    );
+    const mergedTags = SwaggerModule.mergeTags(
+      config.tags,
+      document.tags,
+      operationTagNames
+    );
     const mergedWebhooks = SwaggerModule.mergeWebhooks(
       (config as any).webhooks,
       (document as any).webhooks
