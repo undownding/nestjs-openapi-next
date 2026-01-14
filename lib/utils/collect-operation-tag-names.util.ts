@@ -62,4 +62,3 @@ export function collectOperationTagNames(
 
   return names;
 }
-

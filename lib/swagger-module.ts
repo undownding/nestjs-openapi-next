@@ -520,7 +520,10 @@ export class SwaggerModule {
     return merged.length > 0 ? merged : undefined;
   }
 
-  private static buildXTagGroups(tags?: TagObject[], operationTagNames?: string[]) {
+  private static buildXTagGroups(
+    tags?: TagObject[],
+    operationTagNames?: string[]
+  ) {
     return buildXTagGroups(tags, operationTagNames);
   }
 

@@ -107,7 +107,9 @@ export class SwaggerScanner {
     const schemas = this.explorer.getSchemas();
     this.addExtraModels(schemas, extraModels);
 
-    const normalized = this.transformer.normalizePaths(flatten(denormalizedPaths));
+    const normalized = this.transformer.normalizePaths(
+      flatten(denormalizedPaths)
+    );
     const operationTagNames = collectOperationTagNames(
       normalized.paths,
       (normalized as any).webhooks
