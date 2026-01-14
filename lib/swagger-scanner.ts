@@ -24,6 +24,7 @@ import { getGlobalPrefix } from './utils/get-global-prefix';
 import { stripLastSlash } from './utils/strip-last-slash.util';
 import { ApiTagOptions } from './decorators/api-tag-group.decorator';
 import { TagObject } from './interfaces/open-api-spec.interface';
+import { buildXTagGroups } from './utils/build-x-tag-groups.util';
 
 export class SwaggerScanner {
   private readonly transformer = new SwaggerTransformer();
@@ -62,6 +63,7 @@ export class SwaggerScanner {
       : '';
 
     const tagGroups = this.exploreTagGroups(modules);
+    const xTagGroups = buildXTagGroups(tagGroups);
     const denormalizedPaths = modules.map(
       ({ controllers, metatype, imports }) => {
         let result: ModuleRoute[] = [];
@@ -108,6 +110,7 @@ export class SwaggerScanner {
     return {
       ...this.transformer.normalizePaths(flatten(denormalizedPaths)),
       ...(tagGroups.length > 0 ? { tags: tagGroups } : {}),
+      ...(xTagGroups ? { 'x-tagGroups': xTagGroups } : {}),
       components: {
         schemas: schemas as Record<string, SchemaObject | ReferenceObject>
       }
