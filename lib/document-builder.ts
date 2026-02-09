@@ -82,9 +82,36 @@ export class DocumentBuilder {
     url: string,
     description?: string,
     pathPrefix?: string,
-    variables?: Record<string, ServerVariableObject>
+    variables?: Record<string, ServerVariableObject>,
+    /**
+     * Any other property other than `url`, `description`, and `variables`
+     * to be added to this 'server' entry.
+     */
+    serverExtraProperties?: Record<string, any>
   ): this {
-    this.document.servers.push({ url, description, variables, pathPrefix });
+    const serverObjDef: OpenAPIObject['servers'][number] = {
+      url,
+      description,
+      variables
+    };
+
+    if (!isUndefined(pathPrefix)) {
+      serverObjDef.pathPrefix = pathPrefix;
+    }
+
+    if (serverExtraProperties) {
+      const alreadyDefinedKeysForServerEntry = Object.keys(serverObjDef);
+      // Merge any extra fields into the server object definition but ignoring the fields with keys `url`, `description`, and `variables`
+      for (const key in serverExtraProperties) {
+        // Ignoring already defined keys
+        if (alreadyDefinedKeysForServerEntry.includes(key)) continue;
+
+        const extraFieldValue = serverExtraProperties[key];
+        serverObjDef[key] = extraFieldValue;
+      }
+    }
+
+    this.document.servers.push(serverObjDef);
     return this;
   }
 
@@ -93,15 +120,36 @@ export class DocumentBuilder {
     url: string,
     description?: string,
     pathPrefix?: string,
-    variables?: Record<string, ServerVariableObject>
+    variables?: Record<string, ServerVariableObject>,
+    /**
+     * Any other property other than `name`, `url`, `description`, and `variables`
+     * to be added to this 'server' entry.
+     */
+    serverExtraProperties?: Record<string, any>
   ): this {
-    this.document.servers.push({
+    const serverObjDef: OpenAPIObject['servers'][number] = {
       name,
       url,
       description,
-      variables,
-      pathPrefix
-    });
+      variables
+    };
+
+    if (!isUndefined(pathPrefix)) {
+      serverObjDef.pathPrefix = pathPrefix;
+    }
+
+    if (serverExtraProperties) {
+      const alreadyDefinedKeysForServerEntry = Object.keys(serverObjDef);
+      // Merge any extra fields into the server object definition but ignoring the fields with keys already defined
+      for (const key in serverExtraProperties) {
+        if (alreadyDefinedKeysForServerEntry.includes(key)) continue;
+
+        const extraFieldValue = serverExtraProperties[key];
+        serverObjDef[key] = extraFieldValue;
+      }
+    }
+
+    this.document.servers.push(serverObjDef);
     return this;
   }
 
