@@ -1,6 +1,6 @@
 {
   "name": "nestjs-openapi-next",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A fork of @nestjs/swagger support OAS 3.2",
   "author": "undownding",
   "license": "MIT",
