@@ -8,18 +8,25 @@ import {
   DocumentBuilder,
   getSchemaPath,
   OpenAPIObject,
+  SwaggerDocumentOptions,
   SwaggerModule
 } from '../lib/index.js';
-import { SchemaObject } from '../lib/interfaces/open-api-spec.interface.js';
+import {
+  ReferenceObject,
+  SchemaObject
+} from '../lib/interfaces/open-api-spec.interface.js';
 import { ApplicationModule } from './src/app.module.js';
 import { Cat } from './src/cats/classes/cat.class.js';
 import { TagDto } from './src/cats/dto/tag.dto.js';
 import { ValidationErrorDto } from './src/common/dto/validation-error.dto.js';
 import { ExpressController } from './src/express.controller.js';
+import { createSchema } from 'zod-openapi';
+import { toJsonSchema } from '@valibot/to-json-schema';
 
 describe('Validate OpenAPI schema', () => {
   let app: INestApplication;
   let options: Omit<OpenAPIObject, 'paths'>;
+  let documentOptions: SwaggerDocumentOptions;
 
   beforeEach(async () => {
     app = await NestFactory.create(
@@ -84,6 +91,10 @@ describe('Validate OpenAPI schema', () => {
         }
       )
       .build();
+
+    documentOptions = {
+      standardSchemaConverter: createTestStandardSchemaConverter()
+    };
   });
 
   it('should produce a valid OpenAPI 3.0 schema', async () => {
@@ -143,7 +154,7 @@ describe('Validate OpenAPI schema', () => {
         ]
       }
     }));
-    const document = SwaggerModule.createDocument(app, options);
+    const document = SwaggerModule.createDocument(app, options, documentOptions);
 
     const doc = JSON.stringify(document, null, 2);
     writeFileSync(join(__dirname, 'api-spec.json'), doc);
@@ -193,7 +204,7 @@ describe('Validate OpenAPI schema', () => {
   });
 
   it('should fix colons in url', async () => {
-    const document = SwaggerModule.createDocument(app, options);
+    const document = SwaggerModule.createDocument(app, options, documentOptions);
     expect(
       document.paths['/api/v1/express:colon:another/{prop}']
     ).toBeDefined();
@@ -228,7 +239,7 @@ describe('Validate OpenAPI schema', () => {
         ...options.components,
         ...components
       }
-    });
+    }, documentOptions);
 
     const api = (await SwaggerParser.validate(
       document as any
@@ -239,7 +250,7 @@ describe('Validate OpenAPI schema', () => {
   });
 
   it('should consider explicit config over auto-detected schema', () => {
-    const document = SwaggerModule.createDocument(app, options);
+    const document = SwaggerModule.createDocument(app, options, documentOptions);
     expect(document.paths['/api/cats/download'].get.responses).toEqual({
       '200': {
         description: 'binary file for download',
@@ -254,7 +265,7 @@ describe('Validate OpenAPI schema', () => {
   });
 
   it('should not add optional properties to required list', () => {
-    const document = SwaggerModule.createDocument(app, options);
+    const document = SwaggerModule.createDocument(app, options, documentOptions);
     const required = (document.components?.schemas?.Cat as SchemaObject)
       ?.required;
     expect(required).not.toContain('optionalRawDefinition');
@@ -269,19 +280,19 @@ describe('Validate OpenAPI schema', () => {
   });
 
   it('should add extension to root', () => {
-    const document = SwaggerModule.createDocument(app, options);
+    const document = SwaggerModule.createDocument(app, options, documentOptions);
     expect(document['x-test']).toEqual({ test: 'test' });
   });
 
   it('should add extension to info', () => {
-    const document = SwaggerModule.createDocument(app, options);
+    const document = SwaggerModule.createDocument(app, options, documentOptions);
     expect(document.info['x-logo']).toEqual({
       url: 'https://example.com/logo.png'
     });
   });
 
   it('should add server to the root', () => {
-    const document = SwaggerModule.createDocument(app, options);
+    const document = SwaggerModule.createDocument(app, options, documentOptions);
     expect(document.servers).toBeDefined();
     expect(document.servers).toHaveLength(1);
     expect(document.servers?.[0]).toEqual({
@@ -300,3 +311,34 @@ describe('Validate OpenAPI schema', () => {
     });
   });
 });
+
+function createTestStandardSchemaConverter(): SwaggerDocumentOptions['standardSchemaConverter'] {
+  return (schema, { schemaType }) => {
+    const vendor = (schema as { '~standard'?: { vendor?: string } })[
+      '~standard'
+    ]?.vendor;
+
+    switch (vendor) {
+      case 'zod': {
+        const converted = createSchema(schema as never, {
+          io: schemaType,
+          openapiVersion: '3.0.0'
+        });
+        return {
+          schema: converted.schema as SchemaObject | ReferenceObject,
+          components:
+            converted.components as unknown as Record<string, SchemaObject>
+        };
+      }
+      case 'valibot':
+        return {
+          schema: toJsonSchema(schema as any, {
+            target: 'openapi-3.0',
+            typeMode: schemaType
+          }) as unknown as SchemaObject | ReferenceObject
+        };
+      default:
+        return undefined;
+    }
+  };
+}
