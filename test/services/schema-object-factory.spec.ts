@@ -2,7 +2,8 @@ import { vi } from 'vitest';
 import { Logger } from '@nestjs/common';
 import { toJsonSchema } from '@valibot/to-json-schema';
 import * as v from 'valibot';
-import { z } from 'zod';
+import type { BaseIssue, BaseSchema } from 'valibot';
+import { z, type ZodType } from 'zod';
 import { createSchema } from 'zod-openapi';
 import { ApiExtension, ApiProperty, ApiSchema } from '../../lib/decorators/index.js';
 import { StandardSchemaConverter } from '../../lib/interfaces/index.js';
@@ -1177,33 +1178,166 @@ describe('SchemaObjectFactory', () => {
     schema,
     { schemaType }
   ) => {
-    const vendor = (schema as { '~standard'?: { vendor?: string } })[
-      '~standard'
-    ]?.vendor;
-
-    switch (vendor) {
-      case 'zod': {
-        const converted = createSchema(schema as never, {
-          io: schemaType,
-          openapiVersion: '3.0.0'
-        });
-        return {
-          schema: converted.schema as SchemaObject | ReferenceObject,
-          components:
-            converted.components as unknown as Record<string, SchemaObject>
-        };
-      }
-      case 'valibot':
-        return {
-          schema: toJsonSchema(schema as any, {
-            target: 'openapi-3.0',
-            typeMode: schemaType
-          }) as unknown as SchemaObject | ReferenceObject
-        };
-      default:
-        return undefined;
+    if (isZodStandardSchema(schema)) {
+      const converted = createSchema(schema, {
+        io: schemaType,
+        openapiVersion: '3.0.0'
+      });
+      return {
+        schema: converted.schema as SchemaObject | ReferenceObject,
+        components:
+          converted.components as unknown as Record<string, SchemaObject>
+      };
     }
+
+    if (isValibotStandardSchema(schema)) {
+      return {
+        schema: toJsonSchema(schema, {
+          target: 'openapi-3.0',
+          typeMode: schemaType
+        }) as unknown as SchemaObject | ReferenceObject
+      };
+    }
+
+    return undefined;
   };
+
+  type ValibotSchema = BaseSchema<unknown, unknown, BaseIssue<unknown>>;
+
+  function hasVendor(schema: unknown, vendor: string) {
+    return (
+      !!schema &&
+      typeof schema === 'object' &&
+      (schema as { '~standard'?: { vendor?: string } })['~standard']?.vendor ===
+        vendor
+    );
+  }
+
+  function isZodStandardSchema(schema: unknown): schema is ZodType {
+    return hasVendor(schema, 'zod');
+  }
+
+  function isValibotStandardSchema(schema: unknown): schema is ValibotSchema {
+    return hasVendor(schema, 'valibot');
+  }
+
+  describe('expandStandardSchemaParam', () => {
+    it('should expand an unnamed query standard schema into one param per property', () => {
+      const result = schemaObjectFactory.expandStandardSchemaParam(
+        {
+          in: 'query',
+          type: Object,
+          required: true,
+          standardSchema: createStandardSchema({
+            type: 'object',
+            required: ['limit'],
+            properties: {
+              limit: { type: 'integer' },
+              search: { type: 'string' }
+            }
+          })
+        } as any,
+        {}
+      );
+
+      expect(result).toEqual([
+        expect.objectContaining({
+          in: 'query',
+          name: 'limit',
+          required: true,
+          schema: { type: 'integer' }
+        }),
+        expect.objectContaining({
+          in: 'query',
+          name: 'search',
+          required: false,
+          schema: { type: 'string' }
+        })
+      ]);
+    });
+
+    it('should not expand a body param', () => {
+      expect(
+        schemaObjectFactory.expandStandardSchemaParam(
+          {
+            in: 'body',
+            type: Object,
+            required: true,
+            standardSchema: createStandardSchema({
+              type: 'object',
+              properties: { title: { type: 'string' } }
+            })
+          } as any,
+          {}
+        )
+      ).toBeUndefined();
+    });
+
+    it('should not expand a named query param', () => {
+      expect(
+        schemaObjectFactory.expandStandardSchemaParam(
+          {
+            in: 'query',
+            name: 'filter',
+            type: Object,
+            required: false,
+            standardSchema: createStandardSchema({
+              type: 'object',
+              properties: { nested: { type: 'string' } }
+            })
+          } as any,
+          {}
+        )
+      ).toBeUndefined();
+    });
+
+    it('should not expand a standard schema that does not convert to an object schema', () => {
+      expect(
+        schemaObjectFactory.expandStandardSchemaParam(
+          {
+            in: 'query',
+            type: Object,
+            required: false,
+            standardSchema: createStandardSchema({
+              oneOf: [{ type: 'string' }, { type: 'number' }]
+            })
+          } as any,
+          {}
+        )
+      ).toBeUndefined();
+    });
+
+    it('should not invoke the converter for params it cannot expand', () => {
+      const converter = vi.fn(() => undefined);
+      const factory = new SchemaObjectFactory(
+        modelPropertiesAccessor,
+        swaggerTypesMapper,
+        converter as any
+      );
+
+      factory.expandStandardSchemaParam(
+        {
+          in: 'body',
+          type: Object,
+          required: true,
+          standardSchema: createStandardSchema({ type: 'object' })
+        } as any,
+        {}
+      );
+      factory.expandStandardSchemaParam(
+        {
+          in: 'query',
+          name: 'filter',
+          type: Object,
+          required: false,
+          standardSchema: createStandardSchema({ type: 'object' })
+        } as any,
+        {}
+      );
+
+      expect(converter).not.toHaveBeenCalled();
+    });
+  });
 
   describe('transformToArraySchemaProperty', () => {
     it('should preserve items schema when metadata.items is already defined and type is string', () => {
