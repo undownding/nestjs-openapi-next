@@ -126,7 +126,9 @@ function getOperation(
   const operation = document.paths[path]?.[method];
   expect(operation).toBeDefined();
   if (!operation || '$ref' in operation) {
-    throw new Error(`Expected inlined operation for ${method.toUpperCase()} ${path}`);
+    throw new Error(
+      `Expected inlined operation for ${method.toUpperCase()} ${path}`
+    );
   }
   return operation as OperationObject;
 }
@@ -211,8 +213,7 @@ function getParameter(
 ) {
   const operation = getOperation(document, path, method);
   const parameters = operation.parameters as
-    | Array<ParameterObject | ReferenceObject>
-    | undefined;
+    Array<ParameterObject | ReferenceObject> | undefined;
   const parameter = parameters?.find(
     (candidate): candidate is ParameterObject =>
       !!candidate && !('$ref' in candidate) && candidate.name === name
@@ -248,7 +249,9 @@ function assertStandardSchemaDocument(
     getOperation(document, `${pathPrefix}/cats/standard-body-conflict`, 'post')
   );
   const conflictingBodyContent = getRequestBodyContent(conflictingBodyRequest);
-  const conflictingBodySchema = getSchemaFromRequestBody(conflictingBodyRequest);
+  const conflictingBodySchema = getSchemaFromRequestBody(
+    conflictingBodyRequest
+  );
   expect(conflictingBodyRequest.description).toBe(
     'Explicit body decorator metadata'
   );
@@ -294,12 +297,10 @@ function assertStandardSchemaDocument(
     'Expected inlined contact schema'
   );
   expect(richBodyContactSchema.title).toBe('PreferredContact');
-  expect(richBodyContactSchema.description).toBe(
-    'Preferred contact from Zod'
-  );
-  expect(richBodyContactSchema.examples?.[0] ?? richBodyContactSchema.example).toBe(
-    'owner@example.com'
-  );
+  expect(richBodyContactSchema.description).toBe('Preferred contact from Zod');
+  expect(
+    richBodyContactSchema.examples?.[0] ?? richBodyContactSchema.example
+  ).toBe('owner@example.com');
   expect(getUnionBranches(richBodyContactSchema)).toEqual(
     expect.arrayContaining([
       expect.objectContaining({ type: 'string', format: 'email' }),
@@ -320,15 +321,15 @@ function assertStandardSchemaDocument(
     'Expected inlined profile schema'
   );
   expect(richBodyProfileSchema.title).toBe('CatProfile');
-  expect(richBodyProfileSchema.description).toBe(
-    'Nested cat profile from Zod'
-  );
+  expect(richBodyProfileSchema.description).toBe('Nested cat profile from Zod');
   expect(getInlinedSchema(richBodyProfileSchema.properties.nickname)).toEqual({
     type: 'string',
     description: 'Nested nickname from Zod',
     example: 'Captain Whiskers'
   });
-  expect(getInlinedSchema(richBodyProfileSchema.properties.temperament)).toEqual({
+  expect(
+    getInlinedSchema(richBodyProfileSchema.properties.temperament)
+  ).toEqual({
     type: 'string',
     enum: ['playful', 'calm'],
     description: 'Nested temperament from Zod',
@@ -377,6 +378,11 @@ function assertStandardSchemaDocument(
     type: 'number',
     description: 'Page number from Valibot'
   });
+  // The Standard Schema description must also be promoted onto the parameter
+  // itself: Swagger UI's parameter table reads `parameter.description`, not
+  // `parameter.schema.description`, so leaving it schema-only silently drops
+  // it from the rendered docs.
+  expect(pageParam.description).toBe('Page number from Valibot');
   const searchParam = getParameter(
     document,
     `${pathPrefix}/cats/standard-query`,
@@ -387,6 +393,7 @@ function assertStandardSchemaDocument(
     type: 'string',
     title: 'Search term'
   });
+  expect(searchParam.description).toBeUndefined();
 
   // `getParameter` uses `.find()`, so a duplicate parameter would go unnoticed
   // here and `e2e/api-spec.json` is written rather than compared. Assert
@@ -435,6 +442,9 @@ function assertStandardSchemaDocument(
     description: 'Boolean flag from Zod',
     example: true
   });
+  // No explicit `@ApiQuery` targets `active`, so the Zod description is
+  // promoted onto the parameter unopposed.
+  expect(conflictingActiveParam.description).toBe('Boolean flag from Zod');
 
   const modeParam = getParameter(
     document,
@@ -537,6 +547,10 @@ function assertStandardSchemaDocument(
       description: 'Cat identifier from Zod'
     })
   );
+  // Named params derived from a Standard Schema go through a different
+  // branch than the unnamed-object expansion above, so the promotion is
+  // covered separately here too.
+  expect(idParam.description).toBe('Cat identifier from Zod');
 
   const stateParam = getParameter(
     document,
@@ -580,7 +594,9 @@ function assertStandardSchemaDocument(
     '200'
   );
   const standardResponseSchema = getSchemaFromResponse(standardResponse);
-  expect(standardResponse.description).toBe('Standard schema response override');
+  expect(standardResponse.description).toBe(
+    'Standard schema response override'
+  );
   expect(standardResponseSchema).toEqual(
     expect.objectContaining({
       type: 'object',
