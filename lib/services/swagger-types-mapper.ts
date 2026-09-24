@@ -57,10 +57,7 @@ export class SwaggerTypesMapper {
         ) {
           return {
             ...this.omitParamKeys(param),
-            schema: this.mergeSchemaAnnotations(
-              param.schema as SchemaObject | ReferenceObject,
-              param
-            )
+            schema: this.mergeSchemaAnnotations(param.schema, param)
           };
         }
         return this.omitParamKeys(param);

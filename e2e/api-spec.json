@@ -336,7 +336,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -417,7 +416,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -667,7 +665,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -748,7 +745,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -768,10 +764,10 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string",
-                    "minLength": 1,
                     "description": "Cat name from Zod",
-                    "example": "Milo"
+                    "example": "Milo",
+                    "type": "string",
+                    "minLength": 1
                   },
                   "age": {
                     "type": "integer",
@@ -846,7 +842,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -866,16 +861,18 @@
                 "type": "object",
                 "properties": {
                   "species": {
+                    "description": "Species enum from Zod",
+                    "title": "Species",
+                    "example": "cat",
                     "type": "string",
                     "enum": [
                       "cat",
                       "dog"
-                    ],
-                    "description": "Species enum from Zod",
-                    "title": "Species",
-                    "example": "cat"
+                    ]
                   },
                   "contact": {
+                    "description": "Preferred contact from Zod",
+                    "title": "PreferredContact",
                     "anyOf": [
                       {
                         "type": "string",
@@ -886,9 +883,9 @@
                         "type": "object",
                         "properties": {
                           "phone": {
-                            "type": "string",
                             "description": "Phone number from Zod",
-                            "example": "123-456"
+                            "example": "123-456",
+                            "type": "string"
                           }
                         },
                         "required": [
@@ -896,67 +893,65 @@
                         ]
                       }
                     ],
-                    "description": "Preferred contact from Zod",
-                    "title": "PreferredContact",
                     "example": "owner@example.com"
                   },
                   "profile": {
+                    "title": "CatProfile",
+                    "description": "Nested cat profile from Zod",
                     "type": "object",
                     "properties": {
                       "nickname": {
-                        "type": "string",
                         "description": "Nested nickname from Zod",
-                        "example": "Captain Whiskers"
+                        "example": "Captain Whiskers",
+                        "type": "string"
                       },
                       "temperament": {
+                        "description": "Nested temperament from Zod",
+                        "example": "playful",
                         "type": "string",
                         "enum": [
                           "playful",
                           "calm"
-                        ],
-                        "description": "Nested temperament from Zod",
-                        "example": "playful"
+                        ]
                       },
                       "notes": {
-                        "default": "Indoor only",
                         "description": "Nested notes from Zod",
                         "example": "Indoor only",
                         "deprecated": true,
+                        "default": "Indoor only",
                         "type": "string"
                       },
                       "traits": {
+                        "description": "Nested trait list from Zod",
                         "type": "array",
                         "items": {
                           "type": "object",
                           "properties": {
                             "label": {
-                              "type": "string",
                               "description": "Trait label from Zod",
-                              "example": "affectionate"
+                              "example": "affectionate",
+                              "type": "string"
                             },
                             "score": {
+                              "description": "Trait score from Zod",
+                              "example": 8,
                               "type": "number",
                               "minimum": 0,
-                              "maximum": 10,
-                              "description": "Trait score from Zod",
-                              "example": 8
+                              "maximum": 10
                             }
                           },
                           "required": [
                             "label",
                             "score"
                           ]
-                        },
-                        "description": "Nested trait list from Zod"
+                        }
                       }
                     },
                     "required": [
                       "nickname",
                       "temperament",
                       "traits"
-                    ],
-                    "title": "CatProfile",
-                    "description": "Nested cat profile from Zod"
+                    ]
                   }
                 },
                 "required": [
@@ -1017,7 +1012,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -1038,9 +1032,9 @@
                 "type": "object",
                 "properties": {
                   "override": {
-                    "type": "string",
                     "description": "Body override from Zod",
-                    "example": "zod-body"
+                    "example": "zod-body",
+                    "type": "string"
                   },
                   "count": {
                     "type": "integer",
@@ -1113,7 +1107,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -1198,7 +1191,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -1421,7 +1413,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -1501,7 +1492,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -1634,7 +1624,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -1644,11 +1633,11 @@
             "in": "query",
             "description": "Explicit query decorator description",
             "schema": {
+              "description": "Query override from Zod",
+              "example": 3,
               "type": "integer",
               "minimum": 1,
-              "maximum": 9007199254740991,
-              "description": "Query override from Zod",
-              "example": 3
+              "maximum": 9007199254740991
             }
           },
           {
@@ -1657,9 +1646,9 @@
             "in": "query",
             "description": "Boolean flag from Zod",
             "schema": {
-              "type": "boolean",
               "description": "Boolean flag from Zod",
-              "example": true
+              "example": true,
+              "type": "boolean"
             }
           },
           {
@@ -1719,7 +1708,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -1797,7 +1785,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -1871,7 +1858,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -1961,7 +1947,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -2022,7 +2007,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -2031,12 +2015,12 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "string",
               "enum": [
                 "A",
                 "B",
                 "C"
-              ],
-              "type": "string"
+              ]
             }
           },
           {
@@ -2096,7 +2080,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -2106,10 +2089,10 @@
             "in": "path",
             "description": "Cat identifier from Zod",
             "schema": {
+              "description": "Cat identifier from Zod",
               "type": "string",
               "minLength": 3,
-              "pattern": "^cat_[0-9]+$",
-              "description": "Cat identifier from Zod"
+              "pattern": "^cat_[0-9]+$"
             }
           },
           {
@@ -2169,7 +2152,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -2179,13 +2161,13 @@
             "in": "path",
             "description": "Cat state enum from Zod",
             "schema": {
+              "description": "Cat state enum from Zod",
+              "title": "CatState",
               "type": "string",
               "enum": [
                 "available",
                 "resting"
               ],
-              "description": "Cat state enum from Zod",
-              "title": "CatState",
               "example": "available"
             }
           },
@@ -2246,7 +2228,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -2256,13 +2237,13 @@
             "in": "path",
             "description": "Explicit param decorator description",
             "schema": {
+              "description": "Param override from Zod",
+              "example": "resting",
               "type": "string",
               "enum": [
                 "available",
                 "resting"
-              ],
-              "description": "Param override from Zod",
-              "example": "resting"
+              ]
             }
           },
           {
@@ -2322,7 +2303,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -2343,16 +2323,18 @@
                   "type": "object",
                   "properties": {
                     "status": {
+                      "title": "CatResponseState",
+                      "description": "Response status enum from Zod",
+                      "example": "available",
                       "type": "string",
                       "enum": [
                         "available",
                         "resting"
-                      ],
-                      "title": "CatResponseState",
-                      "description": "Response status enum from Zod",
-                      "example": "available"
+                      ]
                     },
                     "result": {
+                      "title": "StandardResponseResult",
+                      "description": "Response union from Zod",
                       "anyOf": [
                         {
                           "type": "object",
@@ -2367,9 +2349,9 @@
                               "type": "object",
                               "properties": {
                                 "name": {
-                                  "type": "string",
                                   "description": "Returned cat name from Zod",
-                                  "example": "Milo"
+                                  "example": "Milo",
+                                  "type": "string"
                                 }
                               },
                               "required": [
@@ -2394,9 +2376,9 @@
                               ]
                             },
                             "message": {
-                              "type": "string",
                               "description": "Returned message from Zod",
-                              "example": "No cat available"
+                              "example": "No cat available",
+                              "type": "string"
                             }
                           },
                           "required": [
@@ -2406,47 +2388,45 @@
                           "additionalProperties": false
                         }
                       ],
-                      "title": "StandardResponseResult",
-                      "description": "Response union from Zod",
                       "example": {
                         "kind": "message",
                         "message": "No cat available"
                       }
                     },
                     "meta": {
+                      "title": "ResponseMeta",
+                      "description": "Nested response metadata from Zod",
                       "type": "object",
                       "properties": {
                         "source": {
-                          "type": "string",
                           "description": "Nested response source from Zod",
-                          "example": "cache"
+                          "example": "cache",
+                          "type": "string"
                         },
                         "tags": {
+                          "description": "Response tags from Zod",
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
                               "label": {
-                                "type": "string",
                                 "description": "Response tag label from Zod",
-                                "example": "featured"
+                                "example": "featured",
+                                "type": "string"
                               }
                             },
                             "required": [
                               "label"
                             ],
                             "additionalProperties": false
-                          },
-                          "description": "Response tags from Zod"
+                          }
                         }
                       },
                       "required": [
                         "source",
                         "tags"
                       ],
-                      "additionalProperties": false,
-                      "title": "ResponseMeta",
-                      "description": "Nested response metadata from Zod"
+                      "additionalProperties": false
                     }
                   },
                   "required": [
@@ -2504,7 +2484,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -2525,9 +2504,9 @@
                   "type": "object",
                   "properties": {
                     "result": {
-                      "type": "string",
                       "description": "Response override from Zod",
-                      "example": "ok"
+                      "example": "ok",
+                      "type": "string"
                     },
                     "count": {
                       "type": "integer",
@@ -2597,7 +2576,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -2657,80 +2635,6 @@
         }
       }
     },
-    "/api/cats/with-named-type-example": {
-      "get": {
-        "operationId": "CatsController_getWithNamedTypeExample",
-        "parameters": [
-          {
-            "name": "header",
-            "in": "header",
-            "description": "Test",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "example": "test",
-              "default": "test"
-            }
-          },
-          {
-            "name": "filter",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "example": "example-tag",
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/TagDto"
-                }
-              ]
-            }
-          },
-          {
-            "name": "x-tenant-id",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationErrorDto"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        },
-        "security": [
-          {
-            "key2": [],
-            "key1": []
-          },
-          {
-            "bearer": []
-          },
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "cats"
-        ],
-        "x-foo": {
-          "from-controller": true
-        }
-      }
-    },
     "/api/cats/with-random-query": {
       "get": {
         "operationId": "CatsController_getWithRandomQuery",
@@ -2742,7 +2646,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -2825,7 +2728,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -2888,7 +2790,6 @@
             "required": false,
             "schema": {
               "type": "string",
-              "example": "test",
               "default": "test"
             }
           },
@@ -2969,228 +2870,6 @@
           "from-controller": true
         }
       }
-    },
-    "/api/cats/scalar-with-example": {
-      "get": {
-        "operationId": "CatsController_scalarWithExample",
-        "parameters": [
-          {
-            "name": "header",
-            "in": "header",
-            "description": "Test",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "example": "test",
-              "default": "test"
-            }
-          },
-          {
-            "name": "x-tenant-id",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "number"
-                },
-                "example": 42
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationErrorDto"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        },
-        "security": [
-          {
-            "key2": [],
-            "key1": []
-          },
-          {
-            "bearer": []
-          },
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "cats"
-        ],
-        "x-foo": {
-          "from-controller": true
-        }
-      }
-    },
-    "/api/cats/scalar-with-examples": {
-      "get": {
-        "operationId": "CatsController_scalarWithExamples",
-        "parameters": [
-          {
-            "name": "header",
-            "in": "header",
-            "description": "Test",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "example": "test",
-              "default": "test"
-            }
-          },
-          {
-            "name": "x-tenant-id",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "number"
-                },
-                "examples": {
-                  "adult": {
-                    "value": 5,
-                    "summary": "Adult cat age"
-                  },
-                  "kitten": {
-                    "value": 1,
-                    "summary": "Kitten age"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationErrorDto"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        },
-        "security": [
-          {
-            "key2": [],
-            "key1": []
-          },
-          {
-            "bearer": []
-          },
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "cats"
-        ],
-        "x-foo": {
-          "from-controller": true
-        }
-      }
-    },
-    "/api/cats/array-of-scalar-with-example": {
-      "get": {
-        "operationId": "CatsController_arrayOfScalarWithExample",
-        "parameters": [
-          {
-            "name": "header",
-            "in": "header",
-            "description": "Test",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "example": "test",
-              "default": "test"
-            }
-          },
-          {
-            "name": "x-tenant-id",
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "example": [
-                  "Mau",
-                  "Persian"
-                ]
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidationErrorDto"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error"
-          }
-        },
-        "security": [
-          {
-            "key2": [],
-            "key1": []
-          },
-          {
-            "bearer": []
-          },
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "cats"
-        ],
-        "x-foo": {
-          "from-controller": true
-        }
-      }
     }
   },
   "info": {
@@ -3206,6 +2885,21 @@
     {
       "name": "cats",
       "description": ""
+    },
+    {
+      "name": "Express"
+    },
+    {
+      "name": "App"
+    },
+    {
+      "name": "create cats"
+    },
+    {
+      "name": "tag2"
+    },
+    {
+      "name": "tag1"
     }
   ],
   "servers": [
@@ -3431,43 +3125,6 @@
               }
             ]
           },
-          "nullableTag": {
-            "description": "nullable tag",
-            "nullable": true,
-            "type": "object",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/TagDto"
-              }
-            ]
-          },
-          "nullablePrimitiveUnion": {
-            "description": "nullable primitive union",
-            "nullable": true,
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "number"
-              }
-            ]
-          },
-          "nullablePrimitive": {
-            "type": "string",
-            "description": "nullable primitive",
-            "nullable": true
-          },
-          "nullableEnum": {
-            "type": "string",
-            "description": "nullable enum",
-            "enum": [
-              "A",
-              "B",
-              "C"
-            ],
-            "nullable": true
-          },
           "xEnumTest": {
             "description": "The x-enumNames test",
             "allOf": [
@@ -3494,10 +3151,6 @@
           "enum",
           "enumArr",
           "enumWithRef",
-          "nullableTag",
-          "nullablePrimitiveUnion",
-          "nullablePrimitive",
-          "nullableEnum",
           "xEnumTest"
         ]
       },
@@ -3627,20 +3280,6 @@
             ],
             "description": "Array of values that uses \"oneOf\""
           },
-          "enumNamedWithOneOf": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "$ref": "#/components/schemas/LettersEnum"
-              }
-            ],
-            "description": "Enum named reference combined with oneOf combinators"
-          },
           "kittenIds": {
             "type": "array",
             "items": {
@@ -3677,7 +3316,6 @@
           "enumArr",
           "enumWithRef",
           "oneOfExample",
-          "enumNamedWithOneOf",
           "kittenIds"
         ]
       },
@@ -3704,5 +3342,43 @@
   ],
   "x-test": {
     "test": "test"
-  }
+  },
+  "x-tagGroups": [
+    {
+      "name": "Express",
+      "tags": [
+        "Express"
+      ]
+    },
+    {
+      "name": "App",
+      "tags": [
+        "App"
+      ]
+    },
+    {
+      "name": "cats",
+      "tags": [
+        "cats"
+      ]
+    },
+    {
+      "name": "create cats",
+      "tags": [
+        "create cats"
+      ]
+    },
+    {
+      "name": "tag2",
+      "tags": [
+        "tag2"
+      ]
+    },
+    {
+      "name": "tag1",
+      "tags": [
+        "tag1"
+      ]
+    }
+  ]
 }

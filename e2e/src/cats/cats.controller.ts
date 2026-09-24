@@ -29,6 +29,7 @@ import { CatsService } from './cats.service.js';
 import { Cat } from './classes/cat.class.js';
 import { CreateCatDto } from './dto/create-cat.dto.js';
 import { LettersEnum, PaginationQuery } from './dto/pagination-query.dto.js';
+import { TagDto } from './dto/tag.dto.js';
 import { CatBreed } from './enums/cat-breed.enum.js';
 
 const standardBodySchema = z.object({

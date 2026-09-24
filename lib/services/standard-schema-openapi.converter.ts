@@ -5,7 +5,10 @@ import type {
   StandardSchemaConverter,
   StandardSchemaObject
 } from '../interfaces/swagger-document-options.interface.js';
-import { ReferenceObject, SchemaObject } from '../interfaces/open-api-spec.interface.js';
+import {
+  ReferenceObject,
+  SchemaObject
+} from '../interfaces/open-api-spec.interface.js';
 
 export interface ConvertedStandardSchema {
   schema: SchemaObject | ReferenceObject;
@@ -42,9 +45,7 @@ export class StandardSchemaOpenApiConverter {
       return undefined;
     }
 
-    return this.normalizeConvertedSchema(
-      convertedSchema as Record<string, unknown>
-    );
+    return this.normalizeConvertedSchema(convertedSchema);
   }
 
   private isStandardSchema(schema: unknown): schema is StandardSchemaObject {

@@ -2,10 +2,7 @@ import type {
   StandardJSONSchemaV1,
   StandardSchemaV1
 } from '@standard-schema/spec';
-import {
-  ReferenceObject,
-  SchemaObject
-} from './open-api-spec.interface.js';
+import { ReferenceObject, SchemaObject } from './open-api-spec.interface.js';
 
 export type OperationIdFactory = (
   controllerKey: string,

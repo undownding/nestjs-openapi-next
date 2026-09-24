@@ -931,11 +931,7 @@ export class SchemaObjectFactory {
     | BaseParameterObject
     | Array<ParamWithTypeMetadata | BaseParameterObject>
     | undefined {
-    const baseParam = omit(param, [
-      'isArray',
-      'standardSchema',
-      'type'
-    ]) as Omit<ParamWithTypeMetadata, 'isArray' | 'standardSchema' | 'type'>;
+    const baseParam = omit(param, ['isArray', 'standardSchema', 'type']);
 
     if (isBodyParameter(param)) {
       const name =
@@ -957,11 +953,9 @@ export class SchemaObjectFactory {
       'properties' in schema
     ) {
       const requiredProperties = new Set(
-        Array.isArray((schema as SchemaObject).required)
-          ? (schema as SchemaObject).required
-          : []
+        Array.isArray(schema.required) ? schema.required : []
       );
-      return Object.entries((schema as SchemaObject).properties || {}).map(
+      return Object.entries(schema.properties || {}).map(
         ([name, propertySchema]) =>
           this.withPromotedSchemaDescription(
             {
@@ -969,7 +963,7 @@ export class SchemaObjectFactory {
               name,
               required: requiredProperties.has(name)
             },
-            propertySchema as SchemaObject | ReferenceObject
+            propertySchema
           )
       );
     }
