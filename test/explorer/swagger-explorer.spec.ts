@@ -368,7 +368,8 @@ describe('SwaggerExplorer', () => {
           deprecated: false,
           description: "This is a description for 'enum' property",
           schema: {
-            $ref: '#/components/schemas/LettersEnum'
+            default: 'B',
+            allOf: [{ $ref: '#/components/schemas/LettersEnum' }]
           }
         },
         {
@@ -378,6 +379,7 @@ describe('SwaggerExplorer', () => {
           deprecated: false,
           description: "This is a description for 'enumArr' property",
           schema: {
+            default: ['A'],
             items: {
               $ref: '#/components/schemas/LettersEnum'
             },
