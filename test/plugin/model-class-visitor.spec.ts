@@ -1,53 +1,54 @@
+import { vi } from 'vitest';
 import * as ts from 'typescript';
-import { before } from '../../lib/plugin/compiler-plugin';
-import { pluginDebugLogger } from '../../lib/plugin/plugin-debug-logger';
+import { before } from '../../lib/plugin/compiler-plugin.js';
+import { pluginDebugLogger } from '../../lib/plugin/plugin-debug-logger.js';
 import {
   changedCatDtoText,
   changedCatDtoTextTranspiled,
   originalCatDtoText
-} from './fixtures/changed-class.dto';
+} from './fixtures/changed-class.dto.js';
 import {
   createCatDtoAltText,
   createCatDtoTextAltTranspiled
-} from './fixtures/create-cat-alt.dto';
+} from './fixtures/create-cat-alt.dto.js';
 import {
   createCatDtoAlt2Text,
   createCatDtoTextAlt2Transpiled
-} from './fixtures/create-cat-alt2.dto';
+} from './fixtures/create-cat-alt2.dto.js';
 import {
   createCatExcludeDtoText,
   createCatExcludeDtoTextTranspiled,
   createCatIgnoreExcludeDtoTextTranspiled
-} from './fixtures/create-cat-exclude.dto';
+} from './fixtures/create-cat-exclude.dto.js';
 import {
   createCatExclusiveDtoText,
   createCatExclusiveDtoTextTranspiled
-} from './fixtures/create-cat-exclusive.dto';
+} from './fixtures/create-cat-exclusive.dto.js';
 import {
   createCatPriorityDtoText,
   createCatPriorityDtoTextTranspiled
-} from './fixtures/create-cat-priority.dto';
+} from './fixtures/create-cat-priority.dto.js';
 import {
   createCatDtoText,
   createCatDtoTextTranspiled
-} from './fixtures/create-cat.dto';
+} from './fixtures/create-cat.dto.js';
 import {
   es5CreateCatDtoText,
   es5CreateCatDtoTextTranspiled,
   es5CreateCatDtoTextTranspiledV5
-} from './fixtures/es5-class.dto';
+} from './fixtures/es5-class.dto.js';
 import {
   nullableDtoText,
   nullableDtoTextTranspiled
-} from './fixtures/nullable.dto';
+} from './fixtures/nullable.dto.js';
 import {
   parameterPropertyDtoText,
   parameterPropertyDtoTextTranspiled
-} from './fixtures/parameter-property.dto';
+} from './fixtures/parameter-property.dto.js';
 import {
   stringLiteralDtoText,
   stringLiteralDtoTextTranspiled
-} from './fixtures/string-literal.dto';
+} from './fixtures/string-literal.dto.js';
 
 describe('API model properties', () => {
   it('should add the metadata factory when no decorators exist, and generated propertyKey is title', () => {
@@ -387,7 +388,7 @@ describe('API model properties', () => {
     const filename = 'create-cat-priority.dto.ts';
     const fakeProgram = ts.createProgram([filename], options);
 
-    const debugLoggerSpy = jest.spyOn(pluginDebugLogger, 'debug');
+    const debugLoggerSpy = vi.spyOn(pluginDebugLogger, 'debug');
 
     const result = ts.transpileModule(createCatPriorityDtoText, {
       compilerOptions: options,

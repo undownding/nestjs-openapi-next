@@ -2,7 +2,7 @@ export const SERIALIZED_METADATA = {
   '@nestjs/swagger': {
     models: [
       [
-        import('./create-user-dto.fixture'),
+        import('./create-user-dto.fixture.js'),
         {
           CreateUserDto: {
             active: {

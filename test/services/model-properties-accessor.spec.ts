@@ -1,6 +1,6 @@
 import { Type } from '@nestjs/common';
-import { ApiProperty } from '../../lib/decorators';
-import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor';
+import { ApiProperty } from '../../lib/decorators/index.js';
+import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor.js';
 
 describe('ModelPropertiesAccessor', () => {
   class CreateUserDto {

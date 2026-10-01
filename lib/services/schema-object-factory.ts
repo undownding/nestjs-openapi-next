@@ -10,31 +10,31 @@ import {
   omit,
   omitBy,
   pick
-} from 'lodash';
-import { DECORATORS } from '../constants';
-import { ApiSchemaOptions } from '../decorators';
-import { getTypeIsArrayTuple } from '../decorators/helpers';
-import { exploreGlobalApiExtraModelsMetadata } from '../explorers/api-extra-models.explorer';
+} from 'es-toolkit/compat';
+import { DECORATORS } from '../constants.js';
+import { ApiSchemaOptions } from '../decorators/index.js';
+import { getTypeIsArrayTuple } from '../decorators/helpers.js';
+import { exploreGlobalApiExtraModelsMetadata } from '../explorers/api-extra-models.explorer.js';
 import {
   BaseParameterObject,
   ParameterObject,
   ReferenceObject,
   SchemaObject
-} from '../interfaces/open-api-spec.interface';
-import { SchemaObjectMetadata } from '../interfaces/schema-object-metadata.interface';
-import { getSchemaPath } from '../utils';
+} from '../interfaces/open-api-spec.interface.js';
+import { SchemaObjectMetadata } from '../interfaces/schema-object-metadata.interface.js';
+import { getSchemaPath } from '../utils/index.js';
 import {
   getEnumType,
   getEnumValues,
   isEnumArray,
   isEnumMetadata
-} from '../utils/enum.utils';
-import { isBodyParameter } from '../utils/is-body-parameter.util';
-import { isBuiltInType } from '../utils/is-built-in-type.util';
-import { isDateCtor } from '../utils/is-date-ctor.util';
-import { ModelPropertiesAccessor } from './model-properties-accessor';
-import { ParamWithTypeMetadata } from './parameter-metadata-accessor';
-import { SwaggerTypesMapper } from './swagger-types-mapper';
+} from '../utils/enum.utils.js';
+import { isBodyParameter } from '../utils/is-body-parameter.util.js';
+import { isBuiltInType } from '../utils/is-built-in-type.util.js';
+import { isDateCtor } from '../utils/is-date-ctor.util.js';
+import { ModelPropertiesAccessor } from './model-properties-accessor.js';
+import { ParamWithTypeMetadata } from './parameter-metadata-accessor.js';
+import { SwaggerTypesMapper } from './swagger-types-mapper.js';
 
 export class SchemaObjectFactory {
   constructor(
@@ -166,6 +166,18 @@ export class SchemaObjectFactory {
           }, parameterObject);
         }
       ) as ParameterObject[];
+    }
+    if (this.isConstEnumObject(param.type as Record<string, any>)) {
+      const enumValues = getEnumValues(param.type as Record<string, any>);
+      const enumType = getEnumType(enumValues);
+      return {
+        ...param,
+        schema: {
+          type: enumType,
+          enum: enumValues
+        },
+        selfRequired: param.required
+      };
     }
     if (this.isObjectLiteral(param.type)) {
       const schemaFromObjectLiteral = this.createFromObjectLiteral(
@@ -661,6 +673,52 @@ export class SchemaObjectFactory {
     | ParameterObject
     | (SchemaObject & { selfRequired?: boolean }) {
     const typeRef = nestedArrayType || metadata.type;
+    if (metadata.enum && typeRef === Object) {
+      const enumValues = getEnumValues(metadata.enum);
+      const enumType = getEnumType(enumValues);
+
+      if (metadata.isArray) {
+        return this.transformToArraySchemaProperty(
+          {
+            ...metadata,
+            items: {
+              type: enumType,
+              enum: enumValues
+            }
+          } as SchemaObjectMetadata,
+          key,
+          { type: enumType, enum: enumValues }
+        );
+      }
+
+      return this.createSchemaMetadata(
+        key,
+        {
+          ...metadata,
+          type: enumType,
+          enum: enumValues
+        } as SchemaObjectMetadata,
+        schemas,
+        pendingSchemaRefs,
+        enumType
+      );
+    }
+    if (this.isConstEnumObject(typeRef as Record<string, any>)) {
+      const enumValues = getEnumValues(typeRef as Record<string, any>);
+      const enumType = getEnumType(enumValues);
+      const syntheticMetadata = {
+        ...metadata,
+        type: enumType,
+        enum: enumValues
+      } as SchemaObjectMetadata;
+      return this.createSchemaMetadata(
+        key,
+        syntheticMetadata,
+        schemas,
+        pendingSchemaRefs,
+        enumType
+      );
+    }
     if (this.isObjectLiteral(typeRef as Record<string, any>)) {
       const schemaFromObjectLiteral = this.createFromObjectLiteral(
         key,
@@ -791,6 +849,24 @@ export class SchemaObjectFactory {
 
   private getTypeName(type: Type<unknown> | string): string {
     return type && isFunction(type) ? type.name : (type as string);
+  }
+
+  /**
+   * Handles enums reflected as their runtime object (e.g. `as const` enums
+   * or SWC/esbuild `design:type` metadata resolving to the enum object
+   * itself) instead of misinterpreting them as object literal schemas.
+   */
+  private isConstEnumObject(obj: Record<string, any>): boolean {
+    if (typeof obj !== 'object' || !obj || Array.isArray(obj)) {
+      return false;
+    }
+    const values = Object.values(obj);
+    if (values.length === 0) {
+      return false;
+    }
+    return values.every(
+      (value) => typeof value === 'string' || typeof value === 'number'
+    );
   }
 
   private isObjectLiteral(obj: Record<string, any> | undefined) {

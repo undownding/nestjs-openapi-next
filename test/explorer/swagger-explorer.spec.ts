@@ -7,12 +7,13 @@ import {
   Post,
   Query,
   Version,
+  VERSION_NEUTRAL,
   VersioningType
 } from '@nestjs/common';
-import { VERSION_NEUTRAL, VersionValue } from '@nestjs/common/interfaces';
+import { VersionValue } from '@nestjs/common/internal';
 import { ApplicationConfig } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import { upperFirst } from 'lodash';
+import { upperFirst } from 'es-toolkit/compat';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -33,16 +34,16 @@ import {
   ApiQuery,
   ApiResponse,
   ApiSchema
-} from '../../lib/decorators';
-import { DenormalizedDoc } from '../../lib/interfaces/denormalized-doc.interface';
-import { ResponseObject } from '../../lib/interfaces/open-api-spec.interface';
-import { METADATA_FACTORY_NAME } from '../../lib/plugin/plugin-constants';
-import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor';
-import { SchemaObjectFactory } from '../../lib/services/schema-object-factory';
-import { SwaggerTypesMapper } from '../../lib/services/swagger-types-mapper';
-import { GlobalParametersStorage } from '../../lib/storages/global-parameters.storage';
-import { GlobalResponsesStorage } from '../../lib/storages/global-responses.storage';
-import { SwaggerExplorer } from '../../lib/swagger-explorer';
+} from '../../lib/decorators/index.js';
+import { DenormalizedDoc } from '../../lib/interfaces/denormalized-doc.interface.js';
+import { ResponseObject } from '../../lib/interfaces/open-api-spec.interface.js';
+import { METADATA_FACTORY_NAME } from '../../lib/plugin/plugin-constants.js';
+import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor.js';
+import { SchemaObjectFactory } from '../../lib/services/schema-object-factory.js';
+import { SwaggerTypesMapper } from '../../lib/services/swagger-types-mapper.js';
+import { GlobalParametersStorage } from '../../lib/storages/global-parameters.storage.js';
+import { GlobalResponsesStorage } from '../../lib/storages/global-responses.storage.js';
+import { SwaggerExplorer } from '../../lib/swagger-explorer.js';
 
 describe('SwaggerExplorer', () => {
   const schemaObjectFactory = new SchemaObjectFactory(
@@ -1263,20 +1264,20 @@ describe('SwaggerExplorer', () => {
         },
         {
           in: 'query',
-          name: 'order',
-          required: true,
-          schema: {
-            type: 'number',
-            enum: [1, 2, 3]
-          }
-        },
-        {
-          in: 'query',
           name: 'page',
           required: true,
           schema: {
             type: 'string',
             enum: ['d', 'e', 'f']
+          }
+        },
+        {
+          in: 'query',
+          name: 'order',
+          required: true,
+          schema: {
+            type: 'number',
+            enum: [1, 2, 3]
           }
         }
       ]);
@@ -1307,14 +1308,6 @@ describe('SwaggerExplorer', () => {
         },
         {
           in: 'query',
-          name: 'order',
-          required: true,
-          schema: {
-            $ref: '#/components/schemas/QueryEnum'
-          }
-        },
-        {
-          in: 'query',
           name: 'page',
           required: true,
           schema: {
@@ -1322,6 +1315,14 @@ describe('SwaggerExplorer', () => {
             items: {
               $ref: '#/components/schemas/QueryEnum'
             }
+          }
+        },
+        {
+          in: 'query',
+          name: 'order',
+          required: true,
+          schema: {
+            $ref: '#/components/schemas/QueryEnum'
           }
         }
       ]);
@@ -1983,7 +1984,7 @@ describe('SwaggerExplorer', () => {
         }
       );
 
-      expect(routes.length).toEqual(8);
+      expect(routes.length).toEqual(9);
       expect(
         [
           'get',
@@ -1993,7 +1994,8 @@ describe('SwaggerExplorer', () => {
           'patch',
           'options',
           'head',
-          'search'
+          'search',
+          'query'
         ].every((method) =>
           routes.find((route) => route.root.method === method)
         )

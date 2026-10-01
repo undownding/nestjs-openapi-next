@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
-import { DECORATORS } from '../../lib/constants';
-import { ApiExtension } from '../../lib/decorators';
+import { DECORATORS } from '../../lib/constants.js';
+import { ApiExtension } from '../../lib/decorators/index.js';
 
 describe('ApiExtension', () => {
   describe('when applied on the class level', () => {

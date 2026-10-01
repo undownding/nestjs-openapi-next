@@ -4,9 +4,8 @@ sample
 test
 e2e
 
-jest.config.json
-index.ts
-plugin.ts
+vitest.config.mts
+vitest.e2e.config.mts
 package-lock.json
 .eslintignore
 .eslintrc.js

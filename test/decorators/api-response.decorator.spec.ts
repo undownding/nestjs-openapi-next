@@ -1,5 +1,5 @@
 import { Controller, Get, HttpStatus, Param } from '@nestjs/common';
-import { DECORATORS } from '../../lib/constants';
+import { DECORATORS } from '../../lib/constants.js';
 import {
   ApiAcceptedResponse,
   ApiBadGatewayResponse,
@@ -29,7 +29,7 @@ import {
   ApiUnauthorizedResponse,
   ApiUnprocessableEntityResponse,
   ApiUnsupportedMediaTypeResponse
-} from '../../lib/decorators';
+} from '../../lib/decorators/index.js';
 
 describe('ApiResponse', () => {
   describe('when applied on the method level', () => {

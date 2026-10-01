@@ -1,10 +1,10 @@
 import 'reflect-metadata';
 import { Controller, Get, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { ApiOkResponse, ApiProperty } from '../lib/decorators';
-import { DocumentBuilder } from '../lib/document-builder';
-import { SwaggerModule } from '../lib/swagger-module';
-import { SchemaObject } from '../lib/interfaces/open-api-spec.interface';
+import { ApiOkResponse, ApiProperty } from '../lib/decorators/index.js';
+import { DocumentBuilder } from '../lib/document-builder.js';
+import { SwaggerModule } from '../lib/swagger-module.js';
+import { SchemaObject } from '../lib/interfaces/open-api-spec.interface.js';
 
 describe('JSON Schema Draft 2020-12 interface support', () => {
   describe('SchemaObject interface', () => {

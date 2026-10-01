@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { DECORATORS } from '../../lib/constants';
-import { ApiQuery } from '../../lib/decorators';
+import { DECORATORS } from '../../lib/constants.js';
+import { ApiQuery } from '../../lib/decorators/index.js';
 
 describe('ApiQuery', () => {
   describe('when applied on the class level', () => {

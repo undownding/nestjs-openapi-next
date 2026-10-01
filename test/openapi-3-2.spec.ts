@@ -8,10 +8,10 @@ import {
   ApiStreamingResponse,
   ApiTag,
   ApiWebhook
-} from '../lib/decorators';
-import { DocumentBuilder } from '../lib/document-builder';
-import { SwaggerModule } from '../lib/swagger-module';
-import { ReferenceObject } from '../lib/interfaces/open-api-spec.interface';
+} from '../lib/decorators/index.js';
+import { DocumentBuilder } from '../lib/document-builder.js';
+import { SwaggerModule } from '../lib/swagger-module.js';
+import { ReferenceObject } from '../lib/interfaces/open-api-spec.interface.js';
 
 describe('OpenAPI 3.2 extensions', () => {
   it('supports HTTP QUERY method via @ApiQueryMethod()', async () => {
@@ -30,11 +30,39 @@ describe('OpenAPI 3.2 extensions', () => {
     const app = await NestFactory.create(AppModule, { logger: false });
     await app.init();
 
-    const config = new DocumentBuilder().setTitle('t').setVersion('1').build();
+    const config = new DocumentBuilder()
+      .setTitle('t')
+      .setVersion('1')
+      .setOpenAPIVersion('3.2.0')
+      .build();
     const document = SwaggerModule.createDocument(app, config);
 
     expect(document.paths['/search'].query).toBeDefined();
     expect((document.paths['/search'] as any).post).toBeUndefined();
+
+    await app.close();
+  });
+
+  it('strips QUERY operations from documents below OpenAPI 3.2', async () => {
+    @Controller()
+    class QueryController {
+      @Post('search')
+      @ApiQueryMethod()
+      search() {
+        return { ok: true };
+      }
+    }
+
+    @Module({ controllers: [QueryController] })
+    class AppModule {}
+
+    const app = await NestFactory.create(AppModule, { logger: false });
+    await app.init();
+
+    const config = new DocumentBuilder().setTitle('t').setVersion('1').build();
+    const document = SwaggerModule.createDocument(app, config);
+
+    expect(document.paths['/search']).toBeUndefined();
 
     await app.close();
   });

@@ -1,5 +1,5 @@
-import * as Shim from '../../lib/extra/swagger-shim';
-import * as Actual from '../../lib';
+import * as Shim from '../../lib/extra/swagger-shim.js';
+import * as Actual from '../../lib/index.js';
 
 describe('Shim file', () => {
   it('contains all types export by package', () => {

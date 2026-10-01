@@ -1,10 +1,10 @@
 import { Type } from '@nestjs/common';
 import { Transform } from 'class-transformer';
 import { MinLength } from 'class-validator';
-import { ApiProperty } from '../../lib/decorators';
-import { METADATA_FACTORY_NAME } from '../../lib/plugin/plugin-constants';
-import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor';
-import { PickType } from '../../lib/type-helpers';
+import { ApiProperty } from '../../lib/decorators/index.js';
+import { METADATA_FACTORY_NAME } from '../../lib/plugin/plugin-constants.js';
+import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor.js';
+import { PickType } from '../../lib/type-helpers/index.js';
 
 describe('PickType', () => {
   class CreateUserDto {

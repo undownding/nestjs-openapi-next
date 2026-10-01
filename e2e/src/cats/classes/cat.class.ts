@@ -1,5 +1,5 @@
-import { ApiExtension, ApiProperty } from '../../../../lib';
-import { LettersEnum } from '../dto/pagination-query.dto';
+import { ApiExtension, ApiProperty } from '../../../../lib/index.js';
+import { LettersEnum } from '../dto/pagination-query.dto.js';
 
 @ApiExtension('x-schema-extension', { test: 'test' })
 @ApiExtension('x-schema-extension-multiple', { test: 'test*2' })

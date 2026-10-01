@@ -1358,12 +1358,12 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "string",
               "enum": [
                 "A",
                 "B",
                 "C"
-              ],
-              "type": "string"
+              ]
             }
           },
           {
@@ -1732,6 +1732,21 @@
     {
       "name": "cats",
       "description": ""
+    },
+    {
+      "name": "Express"
+    },
+    {
+      "name": "App"
+    },
+    {
+      "name": "create cats"
+    },
+    {
+      "name": "tag2"
+    },
+    {
+      "name": "tag1"
     }
   ],
   "servers": [
@@ -2174,5 +2189,43 @@
   ],
   "x-test": {
     "test": "test"
-  }
+  },
+  "x-tagGroups": [
+    {
+      "name": "Express",
+      "tags": [
+        "Express"
+      ]
+    },
+    {
+      "name": "App",
+      "tags": [
+        "App"
+      ]
+    },
+    {
+      "name": "cats",
+      "tags": [
+        "cats"
+      ]
+    },
+    {
+      "name": "create cats",
+      "tags": [
+        "create cats"
+      ]
+    },
+    {
+      "name": "tag2",
+      "tags": [
+        "tag2"
+      ]
+    },
+    {
+      "name": "tag1",
+      "tags": [
+        "tag1"
+      ]
+    }
+  ]
 }

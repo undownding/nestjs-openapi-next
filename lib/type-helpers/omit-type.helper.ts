@@ -4,12 +4,12 @@ import {
   inheritTransformationMetadata,
   inheritValidationMetadata
 } from '@nestjs/mapped-types';
-import { omit } from 'lodash';
-import { DECORATORS } from '../constants';
-import { ApiProperty } from '../decorators';
-import { MetadataLoader } from '../plugin/metadata-loader';
-import { ModelPropertiesAccessor } from '../services/model-properties-accessor';
-import { clonePluginMetadataFactory } from './mapped-types.utils';
+import { omit } from 'es-toolkit/compat';
+import { DECORATORS } from '../constants.js';
+import { ApiProperty } from '../decorators/index.js';
+import { MetadataLoader } from '../plugin/metadata-loader.js';
+import { ModelPropertiesAccessor } from '../services/model-properties-accessor.js';
+import { clonePluginMetadataFactory } from './mapped-types.utils.js';
 
 const modelPropertiesAccessor = new ModelPropertiesAccessor();
 

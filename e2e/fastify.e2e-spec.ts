@@ -4,11 +4,11 @@ import {
   NestFastifyApplication
 } from '@nestjs/platform-fastify';
 import * as path from 'path';
-import * as request from 'supertest';
-import * as SwaggerParser from 'swagger-parser';
-import { DocumentBuilder, SwaggerModule } from '../lib';
-import { ApplicationModule } from './src/app.module';
-import { FastifyController } from './src/fastify.controller';
+import request from 'supertest';
+import SwaggerParser from 'swagger-parser';
+import { DocumentBuilder, SwaggerModule } from '../lib/index.js';
+import { ApplicationModule } from './src/app.module.js';
+import { FastifyController } from './src/fastify.controller.js';
 
 describe('Fastify Swagger', () => {
   let app: NestFastifyApplication;

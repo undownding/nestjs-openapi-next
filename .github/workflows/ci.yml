@@ -37,4 +37,4 @@ jobs:
         run: npx eslint 'lib/**/*.ts'
 
       - name: Test
-        run: npm run test -- --runInBand
+        run: npm run test

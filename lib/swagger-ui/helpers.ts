@@ -1,4 +1,4 @@
-import { SwaggerUIInitOptions } from '../interfaces/swagger-ui-init-options.interface';
+import { SwaggerUIInitOptions } from '../interfaces/swagger-ui-init-options.interface.js';
 
 /**
  * Transforms options JS object into a string that can be inserted as 'variable' into JS file

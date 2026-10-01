@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 import { Controller, Get, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { ApiOkResponse, ApiProperty } from '../lib/decorators';
-import { DocumentBuilder } from '../lib/document-builder';
-import { SwaggerModule } from '../lib/swagger-module';
+import { ApiOkResponse, ApiProperty } from '../lib/decorators/index.js';
+import { DocumentBuilder } from '../lib/document-builder.js';
+import { SwaggerModule } from '../lib/swagger-module.js';
 
 describe('OpenAPI 3.1 exclusiveMinimum/exclusiveMaximum handling', () => {
   class BoundsDto {

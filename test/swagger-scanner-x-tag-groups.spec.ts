@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import { Controller, Get, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { ApiTag } from '../lib/decorators';
-import { SwaggerScanner } from '../lib/swagger-scanner';
+import { ApiTag } from '../lib/decorators/index.js';
+import { SwaggerScanner } from '../lib/swagger-scanner.js';
 
 describe('SwaggerScanner', () => {
   it('includes root-level x-tagGroups when scanning Enhanced Tags (parent)', async () => {
