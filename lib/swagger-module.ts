@@ -4,7 +4,6 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import * as jsyaml from 'js-yaml';
 import {
-  OpenAPIObject,
   SwaggerCustomOptions,
   SwaggerDocumentOptions
 } from './interfaces/index.js';
@@ -15,6 +14,7 @@ import {
   HeaderObject,
   HeadersObject,
   MediaTypeObject,
+  OpenAPIObject,
   OperationObject,
   ParameterObject,
   PathItemObject,
@@ -34,6 +34,8 @@ import {
 } from './swagger-ui/index.js';
 import { assignTwoLevelsDeep } from './utils/assign-two-levels-deep.js';
 import { getGlobalPrefix } from './utils/get-global-prefix.js';
+import { isOas31OrLater } from './utils/is-oas31-or-later.util.js';
+import { isOas32OrLater } from './utils/is-oas32-or-later.util.js';
 import { normalizeRelPath } from './utils/normalize-rel-path.js';
 import { resolvePath } from './utils/resolve-path.util.js';
 import { validateGlobalPrefix } from './utils/validate-global-prefix.util.js';
@@ -527,6 +529,23 @@ export class SwaggerModule {
     return buildXTagGroups(tags, operationTagNames);
   }
 
+  private static stripQueryOperations<T extends Record<string, PathItemObject>>(
+    pathItems: T
+  ): T {
+    const result: Record<string, PathItemObject> = {};
+    for (const [key, pathItem] of Object.entries(pathItems)) {
+      if (!pathItem?.query) {
+        result[key] = pathItem;
+        continue;
+      }
+      const { query: _query, ...rest } = pathItem;
+      if (Object.keys(rest).length > 0) {
+        result[key] = rest;
+      }
+    }
+    return result as T;
+  }
+
   public static createDocument(
     app: INestApplication,
     config: Omit<OpenAPIObject, 'paths'>,
@@ -564,8 +583,19 @@ export class SwaggerModule {
       ...(mergedWebhooks ? { webhooks: mergedWebhooks } : {})
     };
 
-    if (isOas31OrAbove(mergedDocument.openapi)) {
+    if (isOas31OrLater(mergedDocument.openapi)) {
       normalizeNullableForOas31(mergedDocument);
+    }
+
+    if (!isOas32OrLater(mergedDocument.openapi)) {
+      mergedDocument.paths = SwaggerModule.stripQueryOperations(
+        mergedDocument.paths
+      );
+      if (mergedDocument.webhooks) {
+        mergedDocument.webhooks = SwaggerModule.stripQueryOperations(
+          mergedDocument.webhooks
+        );
+      }
     }
 
     // Auto-derive `x-tagGroups` from Enhanced Tags (`parent`) if not explicitly provided.
