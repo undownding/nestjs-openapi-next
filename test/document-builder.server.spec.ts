@@ -1,4 +1,4 @@
-import { DocumentBuilder } from '../lib/document-builder';
+import { DocumentBuilder } from '../lib/document-builder.js';
 
 describe('DocumentBuilder.addServerWithName()', () => {
   it('adds a server entry with name/url/description', () => {

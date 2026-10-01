@@ -1,10 +1,10 @@
 import { Type } from '@nestjs/common';
 import { Expose, Transform } from 'class-transformer';
 import { IsBoolean, IsString } from 'class-validator';
-import { ApiProperty } from '../../lib/decorators';
-import { METADATA_FACTORY_NAME } from '../../lib/plugin/plugin-constants';
-import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor';
-import { IntersectionType } from '../../lib/type-helpers';
+import { ApiProperty } from '../../lib/decorators/index.js';
+import { METADATA_FACTORY_NAME } from '../../lib/plugin/plugin-constants.js';
+import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor.js';
+import { IntersectionType } from '../../lib/type-helpers/index.js';
 
 describe('IntersectionType', () => {
   class CreateUserDto {

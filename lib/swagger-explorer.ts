@@ -1,16 +1,17 @@
-import { RequestMethod, VersioningType } from '@nestjs/common';
+import {
+  RequestMethod,
+  Type,
+  VERSION_NEUTRAL,
+  VersioningOptions,
+  VersioningType
+} from '@nestjs/common';
+import type { Controller } from '@nestjs/common/interfaces/index.js';
+import { VersionValue } from '@nestjs/common/internal';
 import {
   METHOD_METADATA,
   PATH_METADATA,
   VERSION_METADATA
 } from '@nestjs/common/constants';
-import {
-  Controller,
-  Type,
-  VERSION_NEUTRAL,
-  VersioningOptions,
-  VersionValue
-} from '@nestjs/common/interfaces';
 import {
   addLeadingSlash,
   isUndefined
@@ -30,42 +31,42 @@ import {
   omit,
   omitBy,
   pick
-} from 'lodash';
+} from 'es-toolkit/compat';
 import { parse, Wildcard } from 'path-to-regexp';
-import { DECORATORS } from './constants';
-import { exploreApiCallbacksMetadata } from './explorers/api-callbacks.explorer';
-import { exploreApiExcludeControllerMetadata } from './explorers/api-exclude-controller.explorer';
-import { exploreApiExcludeEndpointMetadata } from './explorers/api-exclude-endpoint.explorer';
+import { DECORATORS } from './constants.js';
+import { exploreApiCallbacksMetadata } from './explorers/api-callbacks.explorer.js';
+import { exploreApiExcludeControllerMetadata } from './explorers/api-exclude-controller.explorer.js';
+import { exploreApiExcludeEndpointMetadata } from './explorers/api-exclude-endpoint.explorer.js';
 import {
   exploreApiExtraModelsMetadata,
   exploreGlobalApiExtraModelsMetadata
-} from './explorers/api-extra-models.explorer';
-import { exploreGlobalApiHeaderMetadata } from './explorers/api-headers.explorer';
-import { exploreApiOperationMetadata } from './explorers/api-operation.explorer';
-import { exploreApiParametersMetadata } from './explorers/api-parameters.explorer';
+} from './explorers/api-extra-models.explorer.js';
+import { exploreGlobalApiHeaderMetadata } from './explorers/api-headers.explorer.js';
+import { exploreApiOperationMetadata } from './explorers/api-operation.explorer.js';
+import { exploreApiParametersMetadata } from './explorers/api-parameters.explorer.js';
 import {
   exploreApiResponseMetadata,
   exploreGlobalApiResponseMetadata
-} from './explorers/api-response.explorer';
+} from './explorers/api-response.explorer.js';
 import {
   exploreApiSecurityMetadata,
   exploreGlobalApiSecurityMetadata
-} from './explorers/api-security.explorer';
+} from './explorers/api-security.explorer.js';
 import {
   exploreApiTagsMetadata,
   exploreGlobalApiTagsMetadata
-} from './explorers/api-use-tags.explorer';
-import { OperationIdFactory } from './interfaces';
-import { DenormalizedDocResolvers } from './interfaces/denormalized-doc-resolvers.interface';
-import { DenormalizedDoc } from './interfaces/denormalized-doc.interface';
+} from './explorers/api-use-tags.explorer.js';
+import { OperationIdFactory } from './interfaces/index.js';
+import { DenormalizedDocResolvers } from './interfaces/denormalized-doc-resolvers.interface.js';
+import { DenormalizedDoc } from './interfaces/denormalized-doc.interface.js';
 import {
   OpenAPIObject,
   SchemaObject
-} from './interfaces/open-api-spec.interface';
-import { MimetypeContentWrapper } from './services/mimetype-content-wrapper';
-import { SchemaObjectFactory } from './services/schema-object-factory';
-import { isBodyParameter } from './utils/is-body-parameter.util';
-import { mergeAndUniq } from './utils/merge-and-uniq.util';
+} from './interfaces/open-api-spec.interface.js';
+import { MimetypeContentWrapper } from './services/mimetype-content-wrapper.js';
+import { SchemaObjectFactory } from './services/schema-object-factory.js';
+import { isBodyParameter } from './utils/is-body-parameter.util.js';
+import { mergeAndUniq } from './utils/merge-and-uniq.util.js';
 
 export class SwaggerExplorer {
   private readonly mimetypeContentWrapper = new MimetypeContentWrapper();

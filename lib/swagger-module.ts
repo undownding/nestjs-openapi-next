@@ -7,7 +7,7 @@ import {
   OpenAPIObject,
   SwaggerCustomOptions,
   SwaggerDocumentOptions
-} from './interfaces';
+} from './interfaces/index.js';
 import {
   CallbackObject,
   CallbacksObject,
@@ -24,22 +24,22 @@ import {
   ResponsesObject,
   SchemaObject,
   TagObject
-} from './interfaces/open-api-spec.interface';
-import { MetadataLoader } from './plugin/metadata-loader';
-import { SwaggerScanner } from './swagger-scanner';
+} from './interfaces/open-api-spec.interface.js';
+import { MetadataLoader } from './plugin/metadata-loader.js';
+import { SwaggerScanner } from './swagger-scanner.js';
 import {
   buildSwaggerHTML,
   buildSwaggerInitJS,
   getSwaggerAssetsAbsoluteFSPath
-} from './swagger-ui';
-import { assignTwoLevelsDeep } from './utils/assign-two-levels-deep';
-import { getGlobalPrefix } from './utils/get-global-prefix';
-import { normalizeRelPath } from './utils/normalize-rel-path';
-import { resolvePath } from './utils/resolve-path.util';
-import { validateGlobalPrefix } from './utils/validate-global-prefix.util';
-import { validatePath } from './utils/validate-path.util';
-import { buildXTagGroups } from './utils/build-x-tag-groups.util';
-import { collectOperationTagNames } from './utils/collect-operation-tag-names.util';
+} from './swagger-ui/index.js';
+import { assignTwoLevelsDeep } from './utils/assign-two-levels-deep.js';
+import { getGlobalPrefix } from './utils/get-global-prefix.js';
+import { normalizeRelPath } from './utils/normalize-rel-path.js';
+import { resolvePath } from './utils/resolve-path.util.js';
+import { validateGlobalPrefix } from './utils/validate-global-prefix.util.js';
+import { validatePath } from './utils/validate-path.util.js';
+import { buildXTagGroups } from './utils/build-x-tag-groups.util.js';
+import { collectOperationTagNames } from './utils/collect-operation-tag-names.util.js';
 
 const NULL_TYPE_SCHEMA: SchemaObject = { type: 'null' };
 

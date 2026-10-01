@@ -1,5 +1,5 @@
 import { isString } from '@nestjs/common/utils/shared.utils';
-import { pluginDebugLogger } from './plugin-debug-logger';
+import { pluginDebugLogger } from './plugin-debug-logger.js';
 
 export interface PluginOptions {
   dtoFileNameSuffix?: string | string[];

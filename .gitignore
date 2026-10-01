@@ -20,3 +20,5 @@ dist
 index.js
 index.d.ts
 /sample
+# vitest cache
+**/node_modules/.vite

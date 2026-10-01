@@ -1,4 +1,4 @@
-import { DocumentBuilder } from '../lib/document-builder';
+import { DocumentBuilder } from '../lib/document-builder.js';
 
 describe('DocumentBuilder license methods', () => {
   describe('setLicense()', () => {

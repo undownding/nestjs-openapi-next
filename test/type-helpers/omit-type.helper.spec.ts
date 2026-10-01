@@ -1,9 +1,9 @@
 import { Type } from '@nestjs/common';
-import { MetadataLoader } from '../../lib/plugin/metadata-loader';
-import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor';
-import { OmitType } from '../../lib/type-helpers';
-import { CreateUserDto } from './fixtures/create-user-dto.fixture';
-import { SERIALIZED_METADATA } from './fixtures/serialized-metadata.fixture';
+import { MetadataLoader } from '../../lib/plugin/metadata-loader.js';
+import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor.js';
+import { OmitType } from '../../lib/type-helpers/index.js';
+import { CreateUserDto } from './fixtures/create-user-dto.fixture.js';
+import { SERIALIZED_METADATA } from './fixtures/serialized-metadata.fixture.js';
 
 class UpdateUserDto extends OmitType(CreateUserDto, ['login', 'lastName']) {}
 

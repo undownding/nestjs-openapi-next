@@ -1,8 +1,8 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import * as ts from 'typescript';
-import { ReadonlyVisitor } from '../../lib/plugin/visitors/readonly.visitor';
-import { PluginMetadataPrinter } from './helpers/metadata-printer';
+import { ReadonlyVisitor } from '../../lib/plugin/visitors/readonly.visitor.js';
+import { PluginMetadataPrinter } from './helpers/metadata-printer.js';
 
 function createTsProgram(tsconfigPath: string) {
   const parsedCmd = ts.getParsedCommandLineOfConfigFile(

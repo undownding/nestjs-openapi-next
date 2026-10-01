@@ -2,7 +2,7 @@ import { Type } from '@nestjs/common';
 import {
   ApiResponse,
   ApiResponseCommonMetadata
-} from './api-response.decorator';
+} from './api-response.decorator.js';
 
 export interface ApiStreamingResponseOptions extends Omit<
   ApiResponseCommonMetadata,

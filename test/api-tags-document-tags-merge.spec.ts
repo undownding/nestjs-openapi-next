@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 import { Controller, Get, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { ApiTag, ApiTags } from '../lib/decorators';
-import { DocumentBuilder } from '../lib/document-builder';
-import { SwaggerModule } from '../lib/swagger-module';
+import { ApiTag, ApiTags } from '../lib/decorators/index.js';
+import { DocumentBuilder } from '../lib/document-builder.js';
+import { SwaggerModule } from '../lib/swagger-module.js';
 
 describe.each(['3.0.0', '3.1.0'] as const)(
   'Document.tags merge behavior (OAS %s)',

@@ -1,14 +1,15 @@
-import { ApiExtension, ApiProperty, ApiSchema } from '../../lib/decorators';
+import { vi } from 'vitest';
+import { ApiExtension, ApiProperty, ApiSchema } from '../../lib/decorators/index.js';
 import { Logger } from '@nestjs/common';
 import {
   BaseParameterObject,
   SchemasObject
-} from '../../lib/interfaces/open-api-spec.interface';
-import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor';
-import { ParamWithTypeMetadata } from '../../lib/services/parameter-metadata-accessor';
-import { SchemaObjectFactory } from '../../lib/services/schema-object-factory';
-import { SwaggerTypesMapper } from '../../lib/services/swagger-types-mapper';
-import { CreateUserDto } from './fixtures/create-user.dto';
+} from '../../lib/interfaces/open-api-spec.interface.js';
+import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor.js';
+import { ParamWithTypeMetadata } from '../../lib/services/parameter-metadata-accessor.js';
+import { SchemaObjectFactory } from '../../lib/services/schema-object-factory.js';
+import { SwaggerTypesMapper } from '../../lib/services/swagger-types-mapper.js';
+import { CreateUserDto } from './fixtures/create-user.dto.js';
 
 describe('SchemaObjectFactory', () => {
   let modelPropertiesAccessor: ModelPropertiesAccessor;
@@ -178,7 +179,7 @@ describe('SchemaObjectFactory', () => {
     });
 
     it('should log an error when detecting duplicate DTOs with different schemas', () => {
-      const loggerErrorSpy = jest.spyOn(Logger, 'error').mockImplementation();
+      const loggerErrorSpy = vi.spyOn(Logger, 'error').mockImplementation();
       const schemas: Record<string, SchemasObject> = {};
 
       class DuplicateDTO {
@@ -212,7 +213,7 @@ describe('SchemaObjectFactory', () => {
     });
 
     it('should not throw an error or log error when detecting duplicate DTOs with the same schemas', () => {
-      const loggerErrorSpy = jest.spyOn(Logger, 'error').mockImplementation();
+      const loggerErrorSpy = vi.spyOn(Logger, 'error').mockImplementation();
       const schemas: Record<string, SchemasObject> = {};
 
       class DuplicateDTO {

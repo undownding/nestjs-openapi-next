@@ -1,17 +1,17 @@
 import * as ts from 'typescript';
-import { before } from '../../lib/plugin/compiler-plugin';
+import { before } from '../../lib/plugin/compiler-plugin.js';
 import {
   appControllerText,
   appControllerTextTranspiled
-} from './fixtures/app.controller';
+} from './fixtures/app.controller.js';
 import {
   appControllerWithTabsText,
   appControllerWithTabsTextTranspiled
-} from './fixtures/app.controller-tabs';
+} from './fixtures/app.controller-tabs.js';
 import {
   appControllerWithoutModifiersText,
   appControllerWithoutModifiersTextTranspiled
-} from './fixtures/app.controller-without-modifiers';
+} from './fixtures/app.controller-without-modifiers.js';
 
 describe('Controller methods', () => {
   it('should add response based on the return value (spaces)', () => {

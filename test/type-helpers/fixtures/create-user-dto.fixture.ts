@@ -1,7 +1,7 @@
 import { Expose, Transform } from 'class-transformer';
 import { IsEnum, IsString } from 'class-validator';
-import { ApiProperty } from '../../../lib/decorators';
-import { METADATA_FACTORY_NAME } from '../../../lib/plugin/plugin-constants';
+import { ApiProperty } from '../../../lib/decorators/index.js';
+import { METADATA_FACTORY_NAME } from '../../../lib/plugin/plugin-constants.js';
 
 export class CreateUserDto {
   @IsString()

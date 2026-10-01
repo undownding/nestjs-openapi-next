@@ -1,4 +1,4 @@
-import { TagObject } from '../interfaces/open-api-spec.interface';
+import { TagObject } from '../interfaces/open-api-spec.interface.js';
 
 /**
  * Derive root-level `x-tagGroups` from Enhanced Tags (`parent`) metadata.

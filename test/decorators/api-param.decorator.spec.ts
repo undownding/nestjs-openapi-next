@@ -1,6 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { DECORATORS } from '../../lib/constants';
-import { ApiParam } from '../../lib/decorators';
+import { DECORATORS } from '../../lib/constants.js';
+import { ApiParam } from '../../lib/decorators/index.js';
 
 describe('ApiParam', () => {
   describe('when applied on the class level', () => {

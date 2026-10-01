@@ -1,6 +1,6 @@
 import 'reflect-metadata';
-import { ApiProperty, ApiPropertyOptional } from '../../../lib/decorators';
-import { CreateProfileDto } from './create-profile.dto';
+import { ApiProperty, ApiPropertyOptional } from '../../../lib/decorators/index.js';
+import { CreateProfileDto } from './create-profile.dto.js';
 
 class House {}
 

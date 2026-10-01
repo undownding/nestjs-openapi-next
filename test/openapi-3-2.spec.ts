@@ -8,10 +8,10 @@ import {
   ApiStreamingResponse,
   ApiTag,
   ApiWebhook
-} from '../lib/decorators';
-import { DocumentBuilder } from '../lib/document-builder';
-import { SwaggerModule } from '../lib/swagger-module';
-import { ReferenceObject } from '../lib/interfaces/open-api-spec.interface';
+} from '../lib/decorators/index.js';
+import { DocumentBuilder } from '../lib/document-builder.js';
+import { SwaggerModule } from '../lib/swagger-module.js';
+import { ReferenceObject } from '../lib/interfaces/open-api-spec.interface.js';
 
 describe('OpenAPI 3.2 extensions', () => {
   it('supports HTTP QUERY method via @ApiQueryMethod()', async () => {

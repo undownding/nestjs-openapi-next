@@ -1,11 +1,11 @@
 import { Type } from '@nestjs/common';
 import { validate } from 'class-validator';
-import { DECORATORS } from '../../lib/constants';
-import { MetadataLoader } from '../../lib/plugin/metadata-loader';
-import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor';
-import { PartialType } from '../../lib/type-helpers';
-import { CreateUserDto } from './fixtures/create-user-dto.fixture';
-import { SERIALIZED_METADATA } from './fixtures/serialized-metadata.fixture';
+import { DECORATORS } from '../../lib/constants.js';
+import { MetadataLoader } from '../../lib/plugin/metadata-loader.js';
+import { ModelPropertiesAccessor } from '../../lib/services/model-properties-accessor.js';
+import { PartialType } from '../../lib/type-helpers/index.js';
+import { CreateUserDto } from './fixtures/create-user-dto.fixture.js';
+import { SERIALIZED_METADATA } from './fixtures/serialized-metadata.fixture.js';
 
 class UpdateUserDto extends PartialType(CreateUserDto) {}
 

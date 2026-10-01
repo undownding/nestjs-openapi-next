@@ -3,29 +3,29 @@ import { MODULE_PATH } from '@nestjs/common/constants';
 import { ApplicationConfig, NestContainer } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { Module } from '@nestjs/core/injector/module';
-import { flatten, isEmpty } from 'lodash';
-import { DECORATORS } from './constants';
+import { flatten, isEmpty } from 'es-toolkit/compat';
+import { DECORATORS } from './constants.js';
 import {
   OpenAPIObject,
   OperationIdFactory,
   SwaggerDocumentOptions
-} from './interfaces';
-import { ModuleRoute } from './interfaces/module-route.interface';
+} from './interfaces/index.js';
+import { ModuleRoute } from './interfaces/module-route.interface.js';
 import {
   ReferenceObject,
   SchemaObject
-} from './interfaces/open-api-spec.interface';
-import { ModelPropertiesAccessor } from './services/model-properties-accessor';
-import { SchemaObjectFactory } from './services/schema-object-factory';
-import { SwaggerTypesMapper } from './services/swagger-types-mapper';
-import { SwaggerExplorer } from './swagger-explorer';
-import { SwaggerTransformer } from './swagger-transformer';
-import { getGlobalPrefix } from './utils/get-global-prefix';
-import { stripLastSlash } from './utils/strip-last-slash.util';
-import { ApiTagOptions } from './decorators/api-tag-group.decorator';
-import { TagObject } from './interfaces/open-api-spec.interface';
-import { buildXTagGroups } from './utils/build-x-tag-groups.util';
-import { collectOperationTagNames } from './utils/collect-operation-tag-names.util';
+} from './interfaces/open-api-spec.interface.js';
+import { ModelPropertiesAccessor } from './services/model-properties-accessor.js';
+import { SchemaObjectFactory } from './services/schema-object-factory.js';
+import { SwaggerTypesMapper } from './services/swagger-types-mapper.js';
+import { SwaggerExplorer } from './swagger-explorer.js';
+import { SwaggerTransformer } from './swagger-transformer.js';
+import { getGlobalPrefix } from './utils/get-global-prefix.js';
+import { stripLastSlash } from './utils/strip-last-slash.util.js';
+import { ApiTagOptions } from './decorators/api-tag-group.decorator.js';
+import { TagObject } from './interfaces/open-api-spec.interface.js';
+import { buildXTagGroups } from './utils/build-x-tag-groups.util.js';
+import { collectOperationTagNames } from './utils/collect-operation-tag-names.util.js';
 
 export class SwaggerScanner {
   private readonly transformer = new SwaggerTransformer();

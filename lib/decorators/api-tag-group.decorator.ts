@@ -1,6 +1,6 @@
-import { DECORATORS } from '../constants';
-import { TagObject } from '../interfaces/open-api-spec.interface';
-import { ApiTags } from './api-use-tags.decorator';
+import { DECORATORS } from '../constants.js';
+import { TagObject } from '../interfaces/open-api-spec.interface.js';
+import { ApiTags } from './api-use-tags.decorator.js';
 
 export type ApiTagKind = 'audience' | 'badge' | 'nav' | (string & {});
 /**

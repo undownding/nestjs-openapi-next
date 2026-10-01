@@ -1,10 +1,10 @@
-import { mergePluginOptions } from '../../lib/plugin/merge-options';
+import { mergePluginOptions } from '../../lib/plugin/merge-options.js';
 import {
   createCliPluginMultiOption,
   createCliPluginSingleOption,
   mergedCliPluginMultiOption,
   mergedCliPluginSingleOption
-} from './fixtures/create-option';
+} from './fixtures/create-option.js';
 
 describe('CLI Plugin options', () => {
   it('should skip element when dtoFileNameSuffix key has more than one element and include ".ts"', () => {

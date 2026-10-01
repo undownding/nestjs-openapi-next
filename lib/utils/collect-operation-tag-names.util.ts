@@ -1,4 +1,4 @@
-import { OpenAPIObject } from '../interfaces/open-api-spec.interface';
+import { OpenAPIObject } from '../interfaces/open-api-spec.interface.js';
 
 const HTTP_METHODS = new Set([
   'get',

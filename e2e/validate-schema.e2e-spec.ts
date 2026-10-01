@@ -3,19 +3,19 @@ import { NestFactory } from '@nestjs/core';
 import { writeFileSync } from 'fs';
 import { OpenAPIV3 } from 'openapi-types';
 import { join } from 'path';
-import * as SwaggerParser from 'swagger-parser';
+import SwaggerParser from 'swagger-parser';
 import {
   DocumentBuilder,
   getSchemaPath,
   OpenAPIObject,
   SwaggerModule
-} from '../lib';
-import { SchemaObject } from '../lib/interfaces/open-api-spec.interface';
-import { ApplicationModule } from './src/app.module';
-import { Cat } from './src/cats/classes/cat.class';
-import { TagDto } from './src/cats/dto/tag.dto';
-import { ValidationErrorDto } from './src/common/dto/validation-error.dto';
-import { ExpressController } from './src/express.controller';
+} from '../lib/index.js';
+import { SchemaObject } from '../lib/interfaces/open-api-spec.interface.js';
+import { ApplicationModule } from './src/app.module.js';
+import { Cat } from './src/cats/classes/cat.class.js';
+import { TagDto } from './src/cats/dto/tag.dto.js';
+import { ValidationErrorDto } from './src/common/dto/validation-error.dto.js';
+import { ExpressController } from './src/express.controller.js';
 
 describe('Validate OpenAPI schema', () => {
   let app: INestApplication;
@@ -69,6 +69,7 @@ describe('Validate OpenAPI schema', () => {
       .addServer(
         'http://localhost:3000',
         'Local server',
+        undefined,
         {
           someVariable: {
             default: 'Variable default value here',
@@ -90,7 +91,7 @@ describe('Validate OpenAPI schema', () => {
       '@nestjs/swagger': {
         models: [
           [
-            import('./src/cats/classes/cat.class'),
+            import('./src/cats/classes/cat.class.js'),
             {
               Cat: {
                 tags: {
@@ -108,11 +109,11 @@ describe('Validate OpenAPI schema', () => {
             }
           ],
           [
-            import('./src/cats/dto/create-cat.dto'),
+            import('./src/cats/dto/create-cat.dto.js'),
             {
               CreateCatDto: {
                 enumWithDescription: {
-                  enum: await import('./src/cats/dto/pagination-query.dto').then(
+                  enum: await import('./src/cats/dto/pagination-query.dto.js').then(
                     (f) => f.LettersEnum
                   )
                 },
@@ -125,12 +126,12 @@ describe('Validate OpenAPI schema', () => {
         ],
         controllers: [
           [
-            import('./src/cats/cats.controller'),
+            import('./src/cats/cats.controller.js'),
             {
               CatsController: {
                 findAllBulk: {
                   type: [
-                    await import('./src/cats/classes/cat.class').then(
+                    await import('./src/cats/classes/cat.class.js').then(
                       (f) => f.Cat
                     )
                   ],

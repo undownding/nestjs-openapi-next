@@ -1,4 +1,4 @@
-import { ApiSecurity } from './api-security.decorator';
+import { ApiSecurity } from './api-security.decorator.js';
 
 /**
  * Convenience decorator for OAuth 2.0 Device Authorization Flow requirements (OAS 3.2).

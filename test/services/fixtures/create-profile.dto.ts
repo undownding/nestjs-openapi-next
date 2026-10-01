@@ -1,6 +1,6 @@
 import 'reflect-metadata';
-import { ApiProperty } from '../../../lib/decorators';
-import { CreateUserDto } from './create-user.dto';
+import { ApiProperty } from '../../../lib/decorators/index.js';
+import { CreateUserDto } from './create-user.dto.js';
 
 export class CreateProfileDto {
   @ApiProperty()
