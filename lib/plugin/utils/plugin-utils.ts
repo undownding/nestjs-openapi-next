@@ -1,4 +1,5 @@
 import { head } from 'es-toolkit/compat';
+import { readFileSync, statSync } from 'node:fs';
 import { isAbsolute, posix } from 'path';
 import * as ts from 'typescript';
 import { PluginOptions } from '../merge-options.js';
@@ -150,10 +151,107 @@ export function getOutputExtension(fileName: string): string {
   }
 }
 
+/**
+ * Returns the extension a package subpath needs to be importable under ESM,
+ * or an empty string when it is importable as written.
+ *
+ * For a package without an "exports" map, Node resolves a subpath to the
+ * literal file inside the package, so an extensionless one fails with
+ * ERR_MODULE_NOT_FOUND. The extension is appended only when that literal path
+ * is not a file and the path with the extension is. The extension comes from
+ * the declaration file, since the subpath names a file inside the dependency
+ * rather than one this build emits.
+ *
+ * A package root is resolved through "main", and a package with an "exports"
+ * map decides itself which subpaths are reachable, so both are left as is.
+ *
+ * The check reads the package from disk rather than going through
+ * `import.meta.resolve`, whose `parent` argument Node ignores unless run with
+ * `--experimental-import-meta-resolve`: resolution would then start from this
+ * plugin's location instead of the application's.
+ */
+function getPackageSubpathExtension(
+  nodeModulesDir: string,
+  specifier: string,
+  declarationFileName: string | undefined
+): string {
+  if (!declarationFileName) {
+    return '';
+  }
+  const segments = specifier.split('/');
+  const nameLength = specifier.startsWith('@') ? 2 : 1;
+  const subpath = segments.slice(nameLength).join('/');
+  if (!subpath) {
+    return '';
+  }
+  const packageDir = posix.join(
+    nodeModulesDir,
+    ...segments.slice(0, nameLength)
+  );
+  const manifest = readPackageManifest(packageDir);
+  if (!manifest || manifest.exports != null) {
+    return '';
+  }
+  const target = posix.join(packageDir, subpath);
+  if (isFile(target)) {
+    return '';
+  }
+  const extension = getOutputExtension(declarationFileName);
+  return isFile(target + extension) ? extension : '';
+}
+
+function readPackageManifest(
+  packageDir: string
+): { exports?: unknown } | undefined {
+  try {
+    return JSON.parse(
+      readFileSync(posix.join(packageDir, 'package.json'), 'utf8')
+    );
+  } catch {
+    return undefined;
+  }
+}
+
+function isFile(path: string): boolean {
+  try {
+    return statSync(path).isFile();
+  } catch {
+    return false;
+  }
+}
+
+export function normalizePackagePath(importPath: string): string {
+  const nodeModulesText = 'node_modules';
+  const nodeModulePos = importPath.indexOf(nodeModulesText);
+  if (nodeModulePos < 0) {
+    return importPath;
+  }
+
+  let packagePath = importPath.slice(
+    nodeModulePos + nodeModulesText.length + 1 // skip the trailing slash
+  );
+
+  const typesText = '@types';
+  const typesPos = packagePath.indexOf(typesText);
+  if (typesPos >= 0) {
+    packagePath = packagePath.slice(typesPos + typesText.length + 1);
+  }
+
+  const indexText = '/index';
+  const indexPos = packagePath.indexOf(indexText);
+  if (indexPos >= 0) {
+    packagePath = packagePath.slice(0, indexPos);
+  }
+
+  return packagePath;
+}
+
 export function replaceImportPath(
   typeReference: string,
   fileName: string,
-  options: PluginOptions
+  options: PluginOptions,
+  sourceSpecifier?: string,
+  declarationFileName?: string
 ) {
   if (!typeReference.includes('import')) {
     return { typeReference, importPath: null };
@@ -195,26 +293,37 @@ export function replaceImportPath(
     let relativePath = posix.relative(from, importPath);
     relativePath = relativePath[0] !== '.' ? './' + relativePath : relativePath;
 
-    const nodeModulesText = 'node_modules';
-    const nodeModulePos = relativePath.indexOf(nodeModulesText);
-    if (nodeModulePos >= 0) {
-      relativePath = relativePath.slice(
-        nodeModulePos + nodeModulesText.length + 1 // slash
-      );
-
-      const typesText = '@types';
-      const typesPos = relativePath.indexOf(typesText);
-      if (typesPos >= 0) {
-        relativePath = relativePath.slice(
-          typesPos + typesText.length + 1 //slash
+    const normalizedPath = normalizePackagePath(relativePath);
+    if (normalizedPath !== relativePath) {
+      let extension = '';
+      if (options.esmCompatible) {
+        // The node_modules directory `normalizePackagePath` cut the path at,
+        // resolved back to an absolute path.
+        const nodeModulesDir = posix.join(
+          from,
+          relativePath.slice(
+            0,
+            relativePath.indexOf('node_modules') + 'node_modules'.length
+          )
+        );
+        extension = getPackageSubpathExtension(
+          nodeModulesDir,
+          normalizedPath,
+          declarationFileName
         );
       }
-
-      const indexText = '/index';
-      const indexPos = relativePath.indexOf(indexText);
-      if (indexPos >= 0) {
-        relativePath = relativePath.slice(0, indexPos);
-      }
+      relativePath = normalizedPath + extension;
+    } else if (sourceSpecifier) {
+      // The path leads outside the project without passing through
+      // node_modules, so `normalizePackagePath` cannot turn it back into a
+      // package specifier: this is a workspace package, which TypeScript
+      // resolves to the real file that declares the type. The relative path
+      // that would be emitted here reaches into that package's internals and
+      // holds only while the output stays at its current offset on disk, so a
+      // deployed application no longer resolves it. The specifier the visited
+      // file already imports the type through does resolve, at compile time
+      // and at run time alike.
+      relativePath = sourceSpecifier;
     } else if (options.esmCompatible) {
       // Add appropriate extension for non-node_modules imports
       const extension = getOutputExtension(fileName);

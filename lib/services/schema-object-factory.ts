@@ -23,6 +23,7 @@ import {
 } from '../interfaces/open-api-spec.interface.js';
 import { SchemaObjectMetadata } from '../interfaces/schema-object-metadata.interface.js';
 import { getSchemaPath } from '../utils/index.js';
+import { StandardSchemaConverter } from '../interfaces/swagger-document-options.interface.js';
 import {
   getEnumType,
   getEnumValues,
@@ -34,12 +35,17 @@ import { isBuiltInType } from '../utils/is-built-in-type.util.js';
 import { isDateCtor } from '../utils/is-date-ctor.util.js';
 import { ModelPropertiesAccessor } from './model-properties-accessor.js';
 import { ParamWithTypeMetadata } from './parameter-metadata-accessor.js';
+import { StandardSchemaOpenApiConverter } from './standard-schema-openapi.converter.js';
 import { SwaggerTypesMapper } from './swagger-types-mapper.js';
 
 export class SchemaObjectFactory {
+  private readonly standardSchemaOpenApiConverter =
+    new StandardSchemaOpenApiConverter(this.standardSchemaConverter);
+
   constructor(
     private readonly modelPropertiesAccessor: ModelPropertiesAccessor,
-    private readonly swaggerTypesMapper: SwaggerTypesMapper
+    private readonly swaggerTypesMapper: SwaggerTypesMapper,
+    private readonly standardSchemaConverter?: StandardSchemaConverter
   ) {}
 
   createFromModel(
@@ -47,6 +53,16 @@ export class SchemaObjectFactory {
     schemas: Record<string, SchemaObject>
   ): Array<ParamWithTypeMetadata | BaseParameterObject> {
     const parameterObjects = parameters.map((param) => {
+      const schemaOverride = this.getSchemaOverride(param, schemas);
+      if (schemaOverride) {
+        const overriddenParam = this.createSchemaOverrideParam(
+          param,
+          schemaOverride
+        );
+        if (overriddenParam) {
+          return overriddenParam;
+        }
+      }
       if (this.isLazyTypeFunc(param.type)) {
         [param.type, param.isArray] = getTypeIsArrayTuple(
           (param.type as Function)(),
@@ -905,5 +921,102 @@ export class SchemaObjectFactory {
       'pattern'
     ];
     return [pick(metadata, modifierKeys), modifierKeys];
+  }
+
+  private createSchemaOverrideParam(
+    param: ParamWithTypeMetadata,
+    schema: SchemaObject | ReferenceObject
+  ):
+    | ParamWithTypeMetadata
+    | BaseParameterObject
+    | Array<ParamWithTypeMetadata | BaseParameterObject>
+    | undefined {
+    const baseParam = omit(param, ['isArray', 'standardSchema', 'type']);
+
+    if (isBodyParameter(param)) {
+      const name =
+        param.name || (isFunction(param.type) ? param.type.name : param.type);
+      return {
+        ...baseParam,
+        name,
+        schema
+      };
+    }
+
+    if (param.name) {
+      return this.withPromotedSchemaDescription(baseParam, schema);
+    }
+
+    if (
+      'type' in schema &&
+      schema.type === 'object' &&
+      'properties' in schema
+    ) {
+      const requiredProperties = new Set(
+        Array.isArray(schema.required) ? schema.required : []
+      );
+      return Object.entries(schema.properties || {}).map(
+        ([name, propertySchema]) =>
+          this.withPromotedSchemaDescription(
+            {
+              ...baseParam,
+              name,
+              required: requiredProperties.has(name)
+            },
+            propertySchema
+          )
+      );
+    }
+
+    return undefined;
+  }
+
+  private withPromotedSchemaDescription(
+    baseParam: Record<string, unknown>,
+    schema: SchemaObject | ReferenceObject
+  ): BaseParameterObject {
+    const description: string | undefined =
+      (baseParam.description as string | undefined) ??
+      (schema as SchemaObject).description;
+    return description === undefined
+      ? { ...baseParam, schema }
+      : { ...baseParam, description, schema };
+  }
+
+  expandStandardSchemaParam(
+    param: ParamWithTypeMetadata,
+    schemas: Record<string, SchemaObject>
+  ): ParamWithTypeMetadata[] | undefined {
+    // Named and body params are never expanded into several parameters, so
+    // converting them here would only discard the result and leave
+    // `createFromModel` to convert them a second time. A user-supplied
+    // converter that is not idempotent would register duplicate components.
+    if (!param.standardSchema || param.name || isBodyParameter(param)) {
+      return undefined;
+    }
+    const schema = this.getSchemaOverride(param, schemas);
+    if (!schema) {
+      return undefined;
+    }
+    const expanded = this.createSchemaOverrideParam(param, schema);
+    return Array.isArray(expanded)
+      ? (expanded as ParamWithTypeMetadata[])
+      : undefined;
+  }
+
+  private getSchemaOverride(
+    param: ParamWithTypeMetadata,
+    schemas: Record<string, SchemaObject>
+  ): SchemaObject | ReferenceObject | undefined {
+    const convertedSchema = this.standardSchemaOpenApiConverter.convert(
+      param.standardSchema,
+      isBodyParameter(param) ? 'input' : 'input'
+    );
+    if (!convertedSchema) {
+      return undefined;
+    }
+
+    Object.assign(schemas, convertedSchema.components);
+    return convertedSchema.schema;
   }
 }

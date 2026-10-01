@@ -29,9 +29,11 @@ import { collectOperationTagNames } from './utils/collect-operation-tag-names.ut
 
 export class SwaggerScanner {
   private readonly transformer = new SwaggerTransformer();
-  private readonly schemaObjectFactory = new SchemaObjectFactory(
-    new ModelPropertiesAccessor(),
-    new SwaggerTypesMapper()
+  private readonly modelPropertiesAccessor = new ModelPropertiesAccessor();
+  private readonly swaggerTypesMapper = new SwaggerTypesMapper();
+  private schemaObjectFactory = new SchemaObjectFactory(
+    this.modelPropertiesAccessor,
+    this.swaggerTypesMapper
   );
   private explorer: SwaggerExplorer | undefined;
 
@@ -46,14 +48,21 @@ export class SwaggerScanner {
       ignoreGlobalPrefix = false,
       operationIdFactory,
       linkNameFactory,
-      autoTagControllers = true
+      autoTagControllers = true,
+      standardSchemaConverter
     } = options;
+
+    this.schemaObjectFactory = new SchemaObjectFactory(
+      this.modelPropertiesAccessor,
+      this.swaggerTypesMapper,
+      standardSchemaConverter
+    );
 
     const untypedApp = app as any;
     const container = untypedApp.container as NestContainer;
     const internalConfigRef = untypedApp.config as ApplicationConfig;
     const httpAdapterType = app.getHttpAdapter().getType();
-    this.initializeSwaggerExplorer(httpAdapterType);
+    this.initializeSwaggerExplorer(httpAdapterType, standardSchemaConverter);
 
     const modules: Module[] = this.getModules(
       container.getModules(),
@@ -180,12 +189,13 @@ export class SwaggerScanner {
     return modulePath ?? Reflect.getMetadata(MODULE_PATH, metatype);
   }
 
-  private initializeSwaggerExplorer(httpAdapterType: string) {
-    if (this.explorer) {
-      return;
-    }
+  private initializeSwaggerExplorer(
+    httpAdapterType: string,
+    standardSchemaConverter?: SwaggerDocumentOptions['standardSchemaConverter']
+  ) {
     this.explorer = new SwaggerExplorer(this.schemaObjectFactory, {
-      httpAdapterType
+      httpAdapterType,
+      standardSchemaConverter
     });
   }
 
